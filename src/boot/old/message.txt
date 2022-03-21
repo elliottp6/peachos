@@ -1,0 +1,8 @@
+Hello world from disk sector 1!
+# -- OLD --
+#all:
+#   sector 1
+#	nasm -f bin src/boot/7_enable_A20.asm -o bin/boot.bin
+#	sector 2 (for 5_disk.asm)
+#	dd if=src/boot/message.txt >> bin/boot.bin
+#	dd if=/dev/zero bs=512 count=1 >> bin/boot.bin 
