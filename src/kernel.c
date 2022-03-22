@@ -9,6 +9,7 @@
 #include "string/string.h"
 #include "fs/pparser.h"
 #include "disk/streamer.h"
+#include "string/string.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -75,6 +76,12 @@ void kernel_main() {
     // enable interrupts
     enable_interrupts();
     print( "enabled interrupts\n" );
+
+    // -- test strcpy --
+    //char buf[20];
+    //strcpy( buf, "hello!" );
+    //print( buf );
+    //while( 1 ) {}
 
     // -- test disk streamer --
     // first, read first sector
