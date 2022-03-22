@@ -14,3 +14,7 @@
 
 // disk
 #define PEACHOS_SECTOR_SIZE 512
+
+// filesystem
+#define PEACHOS_MAX_FILESYSTEMS 12
+#define PEACHOS_MAX_FILE_DESCRIPTORS 512

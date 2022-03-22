@@ -1,6 +1,7 @@
 // https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23983268
 #pragma once
 #include <stdint.h>
+#include "fs/file.h"
 
 typedef uint32_t PEACHOS_DISK_TYPE;
 
@@ -9,6 +10,7 @@ typedef uint32_t PEACHOS_DISK_TYPE;
 struct disk {
     PEACHOS_DISK_TYPE type;
     int sector_size;
+    struct filesystem* filesystem;
 };
 
 // functions

@@ -1,5 +1,5 @@
 # files
-FILES = build/kernel.asm.o build/kernel.o build/idt/idt.asm.o build/idt/idt.o build/memory/memory.o build/io/io.asm.o build/memory/heap/heap.o build/memory/heap/kheap.o build/memory/paging/paging.o build/memory/paging/paging.asm.o build/disk/disk.o build/fs/pparser.o build/string/string.o build/disk/streamer.o
+FILES = build/kernel.asm.o build/kernel.o build/idt/idt.asm.o build/idt/idt.o build/memory/memory.o build/io/io.asm.o build/memory/heap/heap.o build/memory/heap/kheap.o build/memory/paging/paging.o build/memory/paging/paging.asm.o build/disk/disk.o build/fs/pparser.o build/string/string.o build/disk/streamer.o build/fs/file.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -66,7 +66,7 @@ build/memory/paging/paging.asm.o: src/memory/paging/paging.asm
 build/disk/disk.o: src/disk/disk.c
 	i686-elf-gcc $(INCLUDES) -I./src/disk $(FLAGS) -std=gnu99 -c src/disk/disk.c -o build/disk/disk.o
 
-# compile filesystem/path-parser functions
+# compile path-parser functions
 build/fs/pparser.o: src/fs/pparser.c
 	i686-elf-gcc $(INCLUDES) -I./src/fs $(FLAGS) -std=gnu99 -c src/fs/pparser.c -o build/fs/pparser.o
 
@@ -74,8 +74,13 @@ build/fs/pparser.o: src/fs/pparser.c
 build/string/string.o: src/string/string.c
 	i686-elf-gcc $(INCLUDES) -I./src/string $(FLAGS) -std=gnu99 -c src/string/string.c -o build/string/string.o
 
+# compile file streamer
 build/disk/streamer.o: src/disk/streamer.c
 	i686-elf-gcc $(INCLUDES) -I./src/disk $(FLAGS) -std=gnu99 -c src/disk/streamer.c -o build/disk/streamer.o
+
+# compile virtual filesystem (VFS)
+build/fs/file.o: src/fs/file.c
+	i686-elf-gcc $(INCLUDES) -I./src/fs $(FLAGS) -std=gnu99 -c src/fs/file.c -o build/fs/file.o
 
 # clean project
 clean:
