@@ -10,7 +10,29 @@ DATA_SEG equ gdt_data - gdt_start ; offset to gdt_data (should be 0x10)
 _start:
     jmp short start ; relative jump to 'start'
     nop
-times 33 db 0
+
+; FAT16 header (https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23984420, https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system)
+OEMIdentifier       db 'PEACHOS '; OEM Identifier for PEACHOS (FAT16 header)
+BytesPerSector      dw 0x200 ; 512 bytes per sector (generally ignored by most kernels)
+SectorsPerCluster   db 0x80 ; 128 sectors per cluster (i.e. 65K per cluster)
+ReservedSectors     dw 200 ; plenty for our entire kernel (we won't be loading the kernel from file, but from reserved sectors)
+FATCopies           db 0x02 ; original & backup
+RootDirEntries      dw 0x40 ; # of entries in the root directory
+NumSectors          dw 0x00
+MediaType           db 0xF8
+SectorsPerFat       dw 0x100 ; 256
+SectorsPerTrack     dw 0x20
+NumberOfHeads       dw 0x40
+HiddenSectors       dd 0x00
+SectorsBig          dd 0x773594
+
+; Extended BPB (Dos 4.0)
+DriveNumber         db 0x80
+WinNTBit            db 0x00
+Signature           db 0x29
+VolumeID            dd 0xD105
+VolumeIDString      db 'PEACHOS BOO' ; must be 11 bytes
+SystemIDString      db 'FAT16   ' ; must be 8 bytes
 
 ; jump to main16, specifying the code segment as 0
 start:

@@ -20,6 +20,10 @@ make all && qemu-system-i386 -hda bin/os.bin
 #make all && qemu-system-i386 -hda bin/os.bin
 #make all && qemu-system-x86_64 -hda bin/os.bin
 
+# --mount os.bin as FAT16 drive--
+# sudo mkdir /mnt/d
+# sudo mount -t vfat os.bin /mnt/d
+
 # cd bin
 # gdb
 # add-symbol-file ../build/kernelfull.o 0x100000

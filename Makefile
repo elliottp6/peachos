@@ -3,12 +3,15 @@ FILES = build/kernel.asm.o build/kernel.o build/idt/idt.asm.o build/idt/idt.o bu
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
-# build routine
+# build binary: boot w/ FAT16 header, kernel in reserved sectors, then 16MB of null bytes, then write w/ our "hello.txt" written into it as a FAT16 drive
 all: bin/boot.bin bin/kernel.bin
 	rm -rf bin/os.bin
 	dd if=bin/boot.bin >> bin/os.bin
 	dd if=bin/kernel.bin >> bin/os.bin
-	dd if=/dev/zero bs=512 count=100 >> bin/os.bin 
+	dd if=/dev/zero bs=1048576 count=16 >> bin/os.bin
+	sudo mount -t vfat bin/os.bin /mnt/d
+	sudo cp hello.txt /mnt/d
+	sudo umount /mnt/d
 
 # link kernel (note that kernel.asm MUST be the first object file, so that we get the entry point in the right place)
 bin/kernel.bin: $(FILES)
