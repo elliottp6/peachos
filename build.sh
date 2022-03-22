@@ -14,6 +14,7 @@ mkdir -p build/io
 mkdir -p build/disk
 mkdir -p build/string
 mkdir -p build/fs
+mkdir -p build/fs/fat
 
 # make project
 make all && qemu-system-i386 -hda bin/os.bin

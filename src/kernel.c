@@ -5,6 +5,7 @@
 #include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "fs/file.h"
 #include "disk/disk.h"
 #include "string/string.h"
 #include "fs/pparser.h"
@@ -51,6 +52,10 @@ void kernel_main() {
     kheap_init();
     print( "initialized kernel heap\n" );
 
+    // initialize filesystems
+    fs_init();
+    print( "initialized filesystems\n" );
+
     // search & initialize the disks
     disk_search_and_init();
     print( "found ATA disk @ index 0\n" );
@@ -88,14 +93,14 @@ void kernel_main() {
     struct disk* disk = disk_get( 0 );
     uint8_t buffer[512];
     disk_read_block( disk, 0, 1, buffer );
-    if( 235 == buffer[0] ) print( "TEST DISK BLOCK PASSED\n" ); else print( "TEST DISK BLOCK FAILED\n" );
+    if( 235 == buffer[0] ) print( "TEST: DISK BLOCK PASSED\n" ); else print( "TEST: DISK BLOCK FAILED\n" );
 
     // next, read using the stream
     struct disk_stream* stream = diskstreamer_new( 0 );
     diskstreamer_seek( stream, 0x201 );
     uint8_t c = 0;
     diskstreamer_read( stream, &c, 1 );
-    if( 184 == c ) print( "TEST STREAM READ PASSED\n" ); else print( "TEST STREAM READ FAILED\n" );
+    if( 184 == c ) print( "TEST: STREAM READ PASSED\n" ); else print( "TEST: STREAM READ FAILED\n" );
 
     // -- test path parser --
     //struct path_root* root_path = pathparser_parse( "0:/bin/shell.exe", NULL );
@@ -105,6 +110,13 @@ void kernel_main() {
     //    print( "/" );
     //    print( root_path->first->next->part );
     //}
+
+    // -- test to see if the disk's filesystem resolved --
+    if( NULL != disk->filesystem ) {
+        print( "Filesystem bound: '" );
+        print( disk->filesystem->name );
+        print( "'\n" );
+    } else print( "Failed to resolve disk 0 filesystem!\n" );
 
     //  --test the kernel heap --
     //void* p1 = kmalloc( 50 );
@@ -116,4 +128,7 @@ void kernel_main() {
     
     //  --write 0xff to port 0x60 --
     // outb( 0x60, 0xff );
+
+    // wait forever
+    while( 1 );
 }
