@@ -65,8 +65,7 @@ static int file_new_descriptor( struct file_descriptor** desc_out ) {
 }
 
 static struct file_descriptor* file_get_descriptor( int fd ) {
-    // bounds check
-    if( fd <= 0 || fd >= PEACHOS_MAX_FILE_DESCRIPTORS ) return NULL;
+    if( fd <= 0 || fd > PEACHOS_MAX_FILE_DESCRIPTORS ) return NULL; // bounds check (NOTE: bugfix from lecture 43: I don't believe we want >= here, we just want >, because MAX_FILE_DESCRIPTOR - 1 is a valid slot in the array)
     return file_descriptors[fd - 1];
 }
 
