@@ -1,6 +1,8 @@
 #include "fat16.h"
 #include "status.h"
 #include "string/string.h"
+#include "disk/disk.h"
+#include "disk/streamer.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -15,7 +17,7 @@ typedef uint32_t FAT_ITEM_TYPE;
 #define FAT_ITEM_TYPE_DIRECTORY 0
 #define FAT_ITEM_TYPE_FILE 1
 
-// fat directory entry attributes bitmask
+// fat directory entry attributes flags
 #define FAT_FILE_READ_ONLY 0x01
 #define FAT_FILE_HIDDEN 0x02
 #define FAT_FILE_SYSTEM 0x04
@@ -28,7 +30,7 @@ typedef uint32_t FAT_ITEM_TYPE;
 // fat16 header (same as in boot.asm)
 struct fat_header {
     uint8_t short_jump_ins[3];
-    uint8_t oem_identifier;
+    uint8_t oem_identifier[8];
     uint16_t bytes_per_sector;
     uint8_t sectors_per_cluster;
     uint16_t reserved_sectors;
@@ -40,7 +42,7 @@ struct fat_header {
     uint16_t sectors_per_track;
     uint16_t number_of_heads;
     uint32_t hidden_sectors;
-    uint32_t sectors_bigs;
+    uint32_t sectors_big;
 } __attribute((packed));
 
 // fat16 extended header (same as in boot.asm)
@@ -59,6 +61,53 @@ struct fat_h {
     union fat_h_e {
         struct fat_header_extended extended_header;
     } shared;
+};
+
+struct fat_directory_item {
+    uint8_t filename[8];
+    uint8_t ext[3];
+    uint8_t attribute; // attribute bit flags
+    uint8_t reserved;
+    uint8_t creation_time_tenths_of_a_sec;
+    uint16_t creation_time;
+    uint16_t creation_date;
+    uint16_t last_access;
+    uint16_t high_16_bits_first_cluster;
+    uint16_t last_mod_time;
+    uint16_t last_mod_date;
+    uint16_t low_16_bits_first_cluster;
+    uint32_t filesize;
+} __attribute__((packed));
+
+struct fat_directory {
+    struct fat_directory_item* item;
+    int total;
+    int sector_pos;
+    int ending_sector_pos;
+};
+
+struct fat_item {
+    union {
+        struct fat_directory_item* item;
+        struct fat_directory* directory;
+    };
+
+    FAT_ITEM_TYPE type;
+};
+
+// represents an open file
+struct fat_item_descriptor {
+    struct fat_item* item;
+    uint32_t pos; // position we've seeked to in the actual file
+};
+
+// represents the entire fat16 system
+struct fat_private {
+    struct fat_h header;
+    struct fat_directory root_directory;
+    struct disk_stream* cluster_read_stream; // used to stream data clusters
+    struct disk_stream* fat_read_stream; // used to strema the file allocation table
+    struct disk_stream* directory_stream; // used in situations where we stream the directory
 };
 
 // forward declarations
