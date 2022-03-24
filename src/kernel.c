@@ -52,17 +52,25 @@ void kernel_main() {
     kheap_init();
     print( "initialized kernel heap\n" );
 
+    // initialize interrupt descriptor table
+    idt_init();
+    enable_interrupts();
+    print( "enabled interrupts\n" );
+
     // initialize filesystems
     fs_init();
     print( "initialized filesystems\n" );
 
-    // search & initialize the disks
-    disk_search_and_init();
-    print( "found ATA disk @ index 0\n" );
+    // try to read a sector
+    uint8_t buffer[512];
+    disk_read_sector( 0, 1, buffer );
+    if( 235 == buffer[0] ) print( "TEST: DISK SECTOR 0 PASSED\n" ); else print( "TEST: DISK SECTOR 0 FAILED\n" );
 
-    // initialize interrupt descriptor table
-    idt_init();
-    print( "initialized interrupt descriptor table\n" );
+    // search & initialize the disks
+    if( 0 == disk_search_and_init() )
+        print( "found ATA disk @ index 0\n" );
+    else
+        print( "failed to bind disk to filesystem\n" );
 
     // initialize page tables
     kernel_chunk = paging_new_4gb( PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL );
@@ -78,10 +86,6 @@ void kernel_main() {
     //print( p2 ); // p2 => p
     //print( p ); // p => p
 
-    // enable interrupts
-    enable_interrupts();
-    print( "enabled interrupts\n" );
-
     // -- test strcpy --
     //char buf[20];
     //strcpy( buf, "hello!" );
@@ -89,11 +93,6 @@ void kernel_main() {
     //while( 1 ) {}
 
     // -- test disk streamer --
-    // first, read first sector
-    struct disk* disk = disk_get( 0 );
-    uint8_t buffer[512];
-    disk_read_block( disk, 0, 1, buffer );
-    if( 235 == buffer[0] ) print( "TEST: DISK BLOCK PASSED\n" ); else print( "TEST: DISK BLOCK FAILED\n" );
 
     // next, read using the stream
     struct disk_stream* stream = diskstreamer_new( 0 );
@@ -112,6 +111,7 @@ void kernel_main() {
     //}
 
     // -- test to see if the disk's filesystem resolved --
+    struct disk* disk = disk_get( 0 );
     if( NULL != disk->filesystem ) {
         print( "Filesystem bound: '" );
         print( disk->filesystem->name );

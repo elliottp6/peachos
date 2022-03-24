@@ -1,14 +1,18 @@
 #include "streamer.h"
 #include "memory/heap/kheap.h"
 #include "config.h"
+#include "kernel.h"
 
 struct disk_stream* diskstreamer_new( int disk_id ) {
     // get disk
     struct disk* disk = disk_get( disk_id );
-    if( !disk ) return NULL;
+    if( !disk ) {
+        print( "FAILED to get diskstreamer_new disk\n" );
+        return NULL;
+    }
 
     // allocate disk streamer
-    struct disk_stream* streamer = kzalloc( sizeof( struct disk_stream ) );
+    struct disk_stream* streamer = kzalloc( sizeof( struct disk_stream ) ); // TODO: if( NULL == streamer ) return NULL;
     streamer->pos = 0;
     streamer->disk = disk;
     return streamer;
@@ -26,7 +30,10 @@ int diskstreamer_read( struct disk_stream* stream, void* out_buffer, int total_b
 
     // read a single sector
     int res = disk_read_block( stream->disk, sector, 1, buffer );
-    if( res < 0 ) goto out;
+    if( res < 0 ) {
+        print( "FAILED to disk_read_block\n" );
+        goto out;
+    }
 
     // copy sector to out_buffer
     int total_to_read = total_bytes > PEACHOS_SECTOR_SIZE ? PEACHOS_SECTOR_SIZE : total_bytes;

@@ -10,10 +10,13 @@ typedef uint32_t PEACHOS_DISK_TYPE;
 struct disk {
     PEACHOS_DISK_TYPE type;
     int sector_size;
+    int id; // disk id
     struct filesystem* filesystem;
+    void* fs_private; // the private data of our filesystem
 };
 
 // functions
-void disk_search_and_init();
+int disk_read_sector( int lba, int total_blocks, void* buffer ); // for test purposes only
+int disk_search_and_init();
 struct disk* disk_get( int index );
 int disk_read_block( struct disk* idisk, uint32_t lba, int total, void* buffer );

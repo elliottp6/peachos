@@ -5,6 +5,7 @@
 #include "config.h"
 #include "status.h"
 #include "memory/memory.h"
+#include "kernel.h"
 
 struct disk disk; // primary hard disk
 
@@ -30,11 +31,14 @@ int disk_read_sector( int lba, int total_blocks, void* buffer ) { // lba = logic
     return 0;
 }
 
-void disk_search_and_init() {
+int disk_search_and_init() {
     memset( &disk, 0, sizeof( disk ) );
     disk.type = PEACHOS_DISK_TYPE_REAL;
     disk.sector_size = PEACHOS_SECTOR_SIZE;
+    disk.id = 0;
     disk.filesystem = fs_resolve( &disk );
+    if( NULL == disk.filesystem ) return -EIO;
+    return 0;
 }
 
 struct disk* disk_get( int index ) {
@@ -43,6 +47,10 @@ struct disk* disk_get( int index ) {
 }
 
 int disk_read_block( struct disk* idisk, uint32_t lba, int total, void* buffer ) {
-    if( idisk != &disk ) return -EIO;
+    if( idisk != &disk ) {
+        if( NULL == idisk ) print( "FAILED: disk_read_block: idisk is NULL\n" );
+        print( "FAILED: disk_read_block: idisk != &disk\n" );
+        return -EIO;
+    }
     return disk_read_sector( lba, total, buffer );
 }

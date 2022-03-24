@@ -5,19 +5,13 @@
 #include <stdbool.h>
 
 static int heap_validate_table( void* start, void* end, struct heap_table* table ) {
-    int res = 0;
     size_t table_size = (size_t)(end - start);
     size_t total_blocks = table_size / PEACHOS_HEAP_BLOCK_SIZE;
-
-    if( table->total != total_blocks ) { res = -EINVARG; goto out; }
-
-out:
-    return res;
+    if( table->total != total_blocks ) return -EINVARG;
+    return 0;
 }
 
-static bool heap_validate_alignment( void* p ) {
-    return 0 == ((uint32_t)p % PEACHOS_HEAP_BLOCK_SIZE);
-}
+static bool heap_validate_alignment( void* p ) { return 0 == ((uint32_t)p % PEACHOS_HEAP_BLOCK_SIZE); }
 
 int heap_create( struct heap* heap, void* start, void* end, struct heap_table* table ) {
     int res = 0;
@@ -49,9 +43,7 @@ out:
 static uint32_t heap_align_value_to_upper( uint32_t value ) {
     uint32_t r = value % PEACHOS_HEAP_BLOCK_SIZE;
     if( 0 == r ) return value;
-    value-= r;
-    value+=PEACHOS_HEAP_BLOCK_SIZE;
-    return value;
+    return value - r + PEACHOS_HEAP_BLOCK_SIZE;
 }
 
 static int heap_get_entry_type( HEAP_BLOCK_TABLE_ENTRY entry ) { return entry & 0xF; }
@@ -61,13 +53,15 @@ int heap_get_start_block( struct heap* heap, uint32_t total_blocks ) {
     int bc = 0, bs = -1; // current block, block_start
     for( size_t i = 0; i < table->total; i++ ) {
         // check for reset
-        if( HEAP_BLOCK_TABLE_ENTRY_FREE != heap_get_entry_type( table->entries[i] ) ) { bc = 0; bs = -1; continue; }
+        if( HEAP_BLOCK_TABLE_ENTRY_FREE != heap_get_entry_type( table->entries[i] ) ) {
+            bc = 0; bs = -1; continue;
+        }
         
         // check for start
         if( -1 == bs ) bs = i;
 
         // check for end
-        if( total_blocks == ++bc ) break;
+        if( ++bc == total_blocks ) break;
     }
 
     // return either no-memory error or start block
@@ -113,12 +107,12 @@ void* heap_malloc( struct heap* heap, size_t size ) {
 }
 
 int heap_address_to_block( struct heap* heap, void* address ) {
-    return (address - heap->start) / PEACHOS_HEAP_BLOCK_SIZE;
+    return ((int)(address - heap->start)) / PEACHOS_HEAP_BLOCK_SIZE;
 }
 
 void heap_mark_blocks_free( struct heap* heap, int start_block ) {
     struct heap_table* table = heap->table;
-    for( int i = start_block; i < table->total; i++ ) {
+    for( int i = start_block; i < (int)table->total; i++ ) {
         HEAP_BLOCK_TABLE_ENTRY entry = table->entries[i];
         table->entries[i] = HEAP_BLOCK_TABLE_ENTRY_FREE;
         if( !( HEAP_BLOCK_HAS_NEXT & entry ) ) break;
