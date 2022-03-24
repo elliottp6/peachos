@@ -52,31 +52,29 @@ void kernel_main() {
     kheap_init();
     print( "initialized kernel heap\n" );
 
-    // initialize interrupt descriptor table
-    idt_init();
-    enable_interrupts();
-    print( "enabled interrupts\n" );
-
     // initialize filesystems
     fs_init();
     print( "initialized filesystems\n" );
 
-    // try to read a sector
+    // test reading sector 0
     uint8_t buffer[512];
     disk_read_sector( 0, 1, buffer );
     if( 235 == buffer[0] ) print( "TEST: DISK SECTOR 0 PASSED\n" ); else print( "TEST: DISK SECTOR 0 FAILED\n" );
 
     // search & initialize the disks
-    if( 0 == disk_search_and_init() )
-        print( "found ATA disk @ index 0\n" );
-    else
-        print( "failed to bind disk to filesystem\n" );
+    if( 0 == disk_search_and_init() ) print( "found FAT16 filesystem on disk @ index 0\n" );
+    else print( "failed to bind disk to filesystem\n" );
 
     // initialize page tables
     kernel_chunk = paging_new_4gb( PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL );
     paging_switch( paging_4gb_chunk_get_directory( kernel_chunk ) );
     enable_paging();
-    print( "initialized page tables\n" );
+    print( "initialized page tables & enabled paging\n" );
+
+    // initialize IDT & enable interrupts
+    idt_init();
+    enable_interrupts();
+    print( "initialized IDT & enabled interrupts\n" );
 
     //  --test page tables -- : map virtual address '0x1000' to 'p'
     //char *p = kzalloc( 4096 ), *p2 = (char*)0x1000;
@@ -95,11 +93,11 @@ void kernel_main() {
     // -- test disk streamer --
 
     // next, read using the stream
-    struct disk_stream* stream = diskstreamer_new( 0 );
-    diskstreamer_seek( stream, 0x201 );
-    uint8_t c = 0;
-    diskstreamer_read( stream, &c, 1 );
-    if( 184 == c ) print( "TEST: STREAM READ PASSED\n" ); else print( "TEST: STREAM READ FAILED\n" );
+    //struct disk_stream* stream = diskstreamer_new( 0 );
+    //diskstreamer_seek( stream, 0x201 );
+    //uint8_t c = 0;
+    //diskstreamer_read( stream, &c, 1 );
+    //if( 184 == c ) print( "TEST: STREAM READ PASSED\n" ); else print( "TEST: STREAM READ FAILED\n" );
 
     // -- test path parser --
     //struct path_root* root_path = pathparser_parse( "0:/bin/shell.exe", NULL );
@@ -111,12 +109,12 @@ void kernel_main() {
     //}
 
     // -- test to see if the disk's filesystem resolved --
-    struct disk* disk = disk_get( 0 );
-    if( NULL != disk->filesystem ) {
-        print( "Filesystem bound: '" );
-        print( disk->filesystem->name );
-        print( "'\n" );
-    } else print( "Failed to resolve disk 0 filesystem!\n" );
+    //struct disk* disk = disk_get( 0 );
+    //if( NULL != disk->filesystem ) {
+    //    print( "Filesystem bound: '" );
+    //    print( disk->filesystem->name );
+    //    print( "'\n" );
+    //} else print( "Failed to resolve disk 0 filesystem!\n" );
 
     //  --test the kernel heap --
     //void* p1 = kmalloc( 50 );
@@ -130,5 +128,5 @@ void kernel_main() {
     // outb( 0x60, 0xff );
 
     // wait forever
-    while( 1 );
+    //while( 1 );
 }

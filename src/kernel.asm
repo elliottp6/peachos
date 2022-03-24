@@ -38,11 +38,6 @@ _start:
     mov al, 00000001b ; b4=0: FNM, b3-2=00: master/slave set by hardware; b1=0: not AEOI; b0=1: x86 mode
     out 0x21, al ; 0x21 = more data
 
-    ; enable interrupts (note: they must have been disabled when entering protected mode)
-    ; WARNING: system will panic if there's an interrupt before we setup the IDT
-    ; (later on, we'll only enable them *after* we setup the IDT)
-    sti
-
     ; enter C function 'kernel_main'
     call kernel_main
 
