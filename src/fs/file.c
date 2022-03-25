@@ -5,6 +5,8 @@
 #include "status.h"
 #include "kernel.h"
 #include "fat/fat16.h"
+#include "disk/disk.h"
+#include "string/string.h"
 #include <stddef.h>
 
 struct filesystem* filesystems[PEACHOS_MAX_FILESYSTEMS];
@@ -76,6 +78,45 @@ struct filesystem* fs_resolve( struct disk* disk ) {
     return NULL;
 }
 
-int fopen( const char* filename, const char* mode ) {
-    return -EIO;
+FILE_MODE file_get_mode_by_string( const char* str ) {
+    if( 0 == strncmp( str, "r", 1 ) ) return FILE_MODE_READ;
+    else if( 0 == strncmp( str, "w", 1 ) ) return FILE_MODE_WRITE;
+    else if( 0 == strncmp( str, "a", 1 ) ) return FILE_MODE_APPEND;
+    return FILE_MODE_INVALID;
+}
+
+int fopen( const char* filename, const char* mode_string ) {
+    // parse path
+    int res = 0;
+    struct path_root* root_path = pathparser_parse( filename, NULL );
+    if( !root_path || !root_path->first ) { res = -EINVARG; goto out; }
+
+    // get disk and check for filesystem
+    struct disk* disk = disk_get( root_path->drive_no );
+    if( !disk || !disk->filesystem ) { res = -EIO; goto out; }
+    
+    // determine file mode
+    FILE_MODE mode = file_get_mode_by_string( mode_string );
+    if( FILE_MODE_INVALID == mode ) { res = -EINVARG; goto out; }
+
+    // tell filesystem to open the file
+    void* descriptor_private_data = disk->filesystem->open( disk, root_path->first, mode );
+    if( ISERR( descriptor_private_data ) ) { res = ERROR_I( descriptor_private_data ); goto out; }
+
+    /// create & initialize a new file descriptor
+    struct file_descriptor* desc = 0;
+    res = file_new_descriptor( &desc );
+    if( res < 0 ) goto out;
+    desc->filesystem = disk->filesystem;
+    desc->private_data = descriptor_private_data;
+    desc->disk = disk;
+    res = desc->index;
+
+out:
+    // TODO: if( root_path ) pathparser_free( root_path ); // <-- this seems VERY important, but in the lecture he does not clear the memory
+    if( res < 0 ) { 
+        // TODO: clear memory... isn't there more that needs to be done here?
+        return 0; // fopen shouldn't return negative values
+    }
+    return res;
 }

@@ -31,6 +31,6 @@ struct file_descriptor {
 
 // functions
 void fs_init(); // initialize the filesystems
-int fopen( const char* filename, const char* mode ); // open a file given only a path
+int fopen( const char* filename, const char* mode_string ); // open a file given only a path
 void fs_insert_filesystem( struct filesystem* filesystem ); // add filesystem to the system
 struct filesystem* fs_resolve( struct disk* disk ); // determine the filesystem on this disk
