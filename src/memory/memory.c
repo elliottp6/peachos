@@ -11,3 +11,9 @@ int memcmp( void* s1, void* s2, int count ) {
     for( int i = 0; i < count; i++ ) if( b1[i] != b2[i] ) return b1[i] < b2[i] ? -1 : 1;
     return 0;
 }
+
+void* memcpy( void* dest, void* src, int len ) {
+    char *d = dest, *s = src;
+    while( len-- ) *d++ = *s++;
+    return dest;
+}
