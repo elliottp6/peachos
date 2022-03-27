@@ -1,6 +1,7 @@
 // FAT16 core functionality: https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23985072
 // FAT16 structures: https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23985264
 // FAT16 resolver: https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/24023820
+// FAT16 open: https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/24024264
 #pragma once
 #include "file.h"
 

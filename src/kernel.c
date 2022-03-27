@@ -76,6 +76,11 @@ void kernel_main() {
     enable_interrupts();
     print( "initialized IDT & enabled interrupts\n" );
 
+    // test reading a file
+    int fd = fopen( "0:/hello.txt", "r" );
+    if( fd ) print( "we opened hello.txt\n" ); else print( "could NOT open hello.txt\n" );
+    while( 1 );
+
     //  --test page tables -- : map virtual address '0x1000' to 'p'
     //char *p = kzalloc( 4096 ), *p2 = (char*)0x1000;
     //paging_set( paging_4gb_chunk_get_directory( kernel_chunk ), (void*)0x1000, (uint32_t)p | PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITABLE );
