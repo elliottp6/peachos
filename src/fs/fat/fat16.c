@@ -6,6 +6,7 @@
 #include "memory/memory.h"
 #include "memory/heap/kheap.h"
 #include "kernel.h"
+#include "config.h"
 #include <stddef.h>
 #include <stdint.h>
 

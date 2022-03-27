@@ -4,6 +4,7 @@
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "status.h"
+#include "config.h"
 
 // 0:/folder/file.ext
 static int pathparser_path_valid_format( const char* filename ) {
