@@ -30,3 +30,5 @@ void* kzalloc( size_t size ) {
 }
 
 void kfree( void* p ) { heap_free( &kernel_heap, p ); }
+
+void* kheap_clone( void* buffer, size_t size ) { return heap_clone( &kernel_heap, buffer, size ); }

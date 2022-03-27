@@ -1,7 +1,7 @@
 #include "heap.h"
 #include "kernel.h"
 #include "status.h"
-#include "../memory.h"
+#include "memory/memory.h"
 #include <stdbool.h>
 
 static int heap_validate_table( void* start, void* end, struct heap_table* table ) {
@@ -121,4 +121,11 @@ void heap_mark_blocks_free( struct heap* heap, int start_block ) {
 
 void heap_free( struct heap* heap, void* p ) {
     heap_mark_blocks_free( heap, heap_address_to_block( heap, p ) );
+}
+
+void* heap_clone( struct heap* heap, void* buffer, size_t size ) {
+    void* clone = heap_malloc( heap, size );
+    if( !clone ) return NULL;
+    memcpy( clone, buffer, size );
+    return clone;
 }
