@@ -47,3 +47,8 @@ char* strcpy( char* dest, const char* src ) {
 
 bool is_digit( char c ) { return c >= 48 && c <= 57; }
 int to_numeric_digit( char c ) { return c - 48; }
+
+void string_replace_terminator_with_null_terminator( char** out, const char* in, char terminator ) {
+    while( *in && *in != terminator ) { **out = *in; *out+=1; in+=1; }
+    if( *in == terminator ) **out = 0;
+}
