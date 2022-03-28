@@ -106,7 +106,7 @@ struct fat_file_descriptor {
     uint32_t pos; // position we've seeked to in the actual file
 };
 
-// represents the entire fat16 system
+// represents the fat16 system, except for disk info
 struct fat_private {
     struct fat_h header;
     struct fat_directory root_directory;
@@ -119,7 +119,7 @@ struct fat_private {
 int fat16_resolve( struct disk* disk );
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode );
 
-// FAT16 filesystem structure
+// FAT16 VFS structure
 struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
     .open = fat16_open
@@ -142,72 +142,53 @@ static void fat16_init_private( struct disk* disk, struct fat_private* private )
 int fat16_sector_to_absolute( struct disk* disk, int sector ) { return sector * disk->sector_size; }
 
 int fat16_get_total_items_for_directory( struct disk* disk, uint32_t directory_start_sector ) {
-    // allocate directory items
-    struct fat_directory_item item;
-
-    // TODO: these lines of code have no impact (why were they in the lecture?)
-    //struct fat_directory_item empty_item;
-    //memset( &empty_item, 0, sizeof( empty_item ) );
-
-    int res = 0;
-    int i = 0;
-    int directory_start_pos = directory_start_sector * disk->sector_size;
-
     // get FAT structure
     struct fat_private* fat_private = disk->fs_private;
     if( NULL == fat_private ) {
         print( "FAILED on fat16_get_total_items: fat_private is NULL\n" );
-        res = -EIO;
-        goto out;
+        return -EIO;
     }
 
     // get directory stream
     struct disk_stream* stream = fat_private->directory_stream;
     if( NULL == stream->disk ) {
         print( "FAILED on fat16_get_total_items: disk stream is NULL\n" );
-        res = -EIO;
-        goto out;
+        return -EIO;
     }
     
     // seek to directory start sector
+    int directory_start_pos = directory_start_sector * disk->sector_size;
     if( 0 != diskstreamer_seek( stream, directory_start_pos ) ) {
         print( "FAILED to seek within fat16_get_total_items_for_directory\n" );
-        res = -EIO;
-        goto out;
+        return -EIO;
     }
     
     // read directory
+    struct fat_directory_item item;
+    int i = 0;
     while( 1 ) {
         if( 0 != diskstreamer_read( stream, &item, sizeof( item ) ) ) {
             print( "FAILED to read within fat16_get_total_items_for_directory\n" );
-            res = -EIO;
-            goto out;
+            return -EIO;
         }
 
-        print( "read directory item\n" );
-
+        // print( "read directory item\n" );
         if( 0x00 == item.filename[0] ) break; // 0x00 indicates last entry
-        if( 0xE5 == item.filename[0] ) continue; // 0xE5 indicates that the entry is available
+        if( 0xE5 == item.filename[0] ) continue; // 0xE5 indicates that the entry is empty (available)
         i++;
     }
-
-    // return the # of items we read
-    res = i;
-
-out:
-    return res;
+    return i;
 }
 
-int fat16_get_root_directory( struct disk* disk, struct fat_private* fat_private, struct fat_directory* directory ) {
-    int res = 0;
-
+int fat16_get_root_directory( struct disk* disk, struct fat_directory* directory ) {
     // get location of root directory
+    struct fat_private* fat_private = disk->fs_private;
     struct fat_header* primary_header = &fat_private->header.primary_header;
     int root_dir_sector_pos = primary_header->reserved_sectors + primary_header->fat_copies * primary_header->sectors_per_fat;
     
     // get size of root directory
-    int root_dir_entries = fat_private->header.primary_header.root_dir_entries;
-    int root_dir_size = root_dir_entries * sizeof( struct fat_directory_item );
+    int root_dir_entries = fat_private->header.primary_header.root_dir_entries,
+        root_dir_size = root_dir_entries * sizeof( struct fat_directory_item );
     
     // determine # of sectors to read (rounded up)
     int total_sectors = root_dir_size / disk->sector_size;
@@ -217,15 +198,15 @@ int fat16_get_root_directory( struct disk* disk, struct fat_private* fat_private
     int total_items = fat16_get_total_items_for_directory( disk, root_dir_sector_pos );
     if( total_items < 0 ) {
         print( "FAILED to get fat16_get_total_item_for_directory\n" );
-        res = -EIO;
-        goto out;
+        return -EIO;
     }
 
     // allocate a fat_directory_item array to hold the root directory items
     struct fat_directory_item* dir = kzalloc( root_dir_size );
-    if( !dir ) { res = -ENOMEM; goto out; }
+    if( !dir ) return -ENOMEM;
 
     // seek to the root directory
+    int res = 0;
     struct disk_stream* stream = fat_private->directory_stream;
     if( 0 != diskstreamer_seek( stream, fat16_sector_to_absolute( disk, root_dir_sector_pos ) ) ) {
         res = -EIO;
@@ -242,6 +223,7 @@ int fat16_get_root_directory( struct disk* disk, struct fat_private* fat_private
     directory->ending_sector_pos = root_dir_sector_pos + root_dir_size / disk->sector_size;
 
 out:
+    if( res < 0 && dir ) kfree( dir );
     return res;
 }
 
@@ -273,9 +255,7 @@ int fat16_resolve( struct disk* disk ) {
     }
 
     // load the root directory
-    // TODO: why do we need to pass fat_private when it's directly inside of disk structure already?
-    // seems like a bit messy to me
-    if( 0 != fat16_get_root_directory( disk, fat_private, &fat_private->root_directory ) ) {
+    if( 0 != fat16_get_root_directory( disk, &fat_private->root_directory ) ) {
         print( "fat16 FAILED to get root directory\n" );
         res = -EIO;
         goto out;
@@ -499,17 +479,21 @@ struct fat_item* fat16_get_directory_entry( struct disk* disk, struct path_part*
 }
 
 // takes a path and returns a file descriptor
+// TODO: how does callee know if there's an error?
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode ) {
-    // read-only filesystem TODO: how does callee know this is an error???
+    // read-only filesystem
     if( FILE_MODE_READ != mode ) return ERROR(-ERDONLY);
     
-    // allocate a new file descriptor TODO: failure paths need to deallocate
+    // allocate a new file descriptor
     struct fat_file_descriptor* descriptor = kzalloc( sizeof( struct fat_file_descriptor ) );
     if( !descriptor ) return ERROR(-ENOMEM);
 
     // set descriptor position & item
     descriptor->pos = 0;
     descriptor->item = fat16_get_directory_entry( disk, path );
-    if( !descriptor->item ) return ERROR( -EIO );
+    if( !descriptor->item ) {
+        kfree( descriptor );
+        return ERROR( -EIO );
+    }
     return descriptor;
 }

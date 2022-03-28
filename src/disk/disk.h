@@ -9,8 +9,7 @@ typedef uint32_t PEACHOS_DISK_TYPE;
 
 struct disk {
     PEACHOS_DISK_TYPE type;
-    int sector_size;
-    int id; // disk id
+    int sector_size, id;
     struct filesystem* filesystem;
     void* fs_private; // the private data of our filesystem
 };
