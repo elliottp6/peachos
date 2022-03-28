@@ -120,3 +120,15 @@ out:
     }
     return res;
 }
+
+int fread( void* buffer, uint32_t size, uint32_t nmemb, int fd ) {
+    // sanity check args
+    if( 0 == size || 0 == nmemb || fd < 1 ) return -EINVARG;
+
+    // get file descriptor
+    struct file_descriptor* desc = file_get_descriptor( fd );
+    if( !desc ) return -EINVARG;
+
+    // call the filesystem to do the read
+    return desc->filesystem->read( desc->disk, desc->private_data, size, nmemb, (char*)buffer );
+}
