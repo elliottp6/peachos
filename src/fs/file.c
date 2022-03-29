@@ -108,7 +108,7 @@ int fopen( const char* filename, const char* mode_string ) {
     res = file_new_descriptor( &desc );
     if( res < 0 ) goto out;
     desc->filesystem = disk->filesystem;
-    desc->private_data = descriptor_private_data;
+    desc->private = descriptor_private_data;
     desc->disk = disk;
     res = desc->index;
 
@@ -121,14 +121,20 @@ out:
     return res;
 }
 
-int fread( void* buffer, uint32_t size, uint32_t nmemb, int fd ) {
-    // sanity check args
-    if( 0 == size || 0 == nmemb || fd < 1 ) return -EINVARG;
-
+int fseek( int fd, int offset, FILE_SEED_MODE whence ) {
     // get file descriptor
     struct file_descriptor* desc = file_get_descriptor( fd );
     if( !desc ) return -EINVARG;
 
+    // seek
+    return desc->filesystem->seek( desc->private, offset, whence );
+}
+
+int fread( void* buffer, uint32_t size, uint32_t nmemb, int fd ) {
+    // get file descriptor
+    struct file_descriptor* desc = file_get_descriptor( fd );
+    if( !desc || 0 == size || 0 == nmemb ) return -EINVARG;
+
     // call the filesystem to do the read
-    return desc->filesystem->read( desc->disk, desc->private_data, size, nmemb, (char*)buffer );
+    return desc->filesystem->read( desc->disk, desc->private, size, nmemb, (char*)buffer );
 }
