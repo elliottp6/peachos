@@ -76,9 +76,16 @@ void kernel_main() {
     enable_interrupts();
     print( "initialized IDT & enabled interrupts\n" );
 
-    // test reading a file
+    // test opening a file
     int fd = fopen( "0:/hello.txt", "r" );
-    if( fd ) print( "we opened hello.txt\n" ); else print( "could NOT open hello.txt\n" );
+    if( !fd ) print( "could NOT open hello.txt\n" );
+    else {
+        print( "opened hello.txt\n" );
+        char buf[14];
+        fread( buf, 13, 1, fd );
+        buf[13] = 0; // insert null terminator
+        print( buf );
+    }
     while( 1 );
 
     //  --test page tables -- : map virtual address '0x1000' to 'p'

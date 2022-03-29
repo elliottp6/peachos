@@ -118,11 +118,13 @@ struct fat_private {
 // forward declarations
 int fat16_resolve( struct disk* disk );
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode );
+int fat16_read( struct disk* disk, void* descriptor, uint32_t size, uint32_t nmemb, char* out );
 
 // FAT16 VFS structure
 struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
-    .open = fat16_open
+    .open = fat16_open,
+    .read = fat16_read
 };
 
 // functions
@@ -357,7 +359,7 @@ static int fat16_read_internal_from_stream( struct disk* disk, struct disk_strea
     // calculate where & how-much to read
     int offset_from_cluster = offset % size_of_cluster_bytes,
         start_sector = fat16_cluster_to_sector( disk->fs_private, cluster ),
-        start_pos = (start_sector * disk->sector_size) * offset_from_cluster, // TODO: not + ???
+        start_pos = (start_sector * disk->sector_size) + offset_from_cluster,
         total_to_read = total > size_of_cluster_bytes ? size_of_cluster_bytes : total;
 
     // seek & read the cluster
@@ -478,8 +480,7 @@ struct fat_item* fat16_get_directory_entry( struct disk* disk, struct path_part*
     return item;
 }
 
-// takes a path and returns a file descriptor
-// TODO: how does callee know if there's an error?
+// takes a path and returns a file descriptor TODO: how does callee know if there's an error?
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode ) {
     // read-only filesystem
     if( FILE_MODE_READ != mode ) return ERROR(-ERDONLY);
@@ -496,4 +497,20 @@ void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode ) {
         return ERROR( -EIO );
     }
     return descriptor;
+}
+
+int fat16_read( struct disk* disk, void* descriptor, uint32_t size, uint32_t nmemb, char* out ) {
+    // get offset for file
+    struct fat_file_descriptor* fat_desc = descriptor;
+    struct fat_directory_item* item = fat_desc->item->item;
+    int offset = fat_desc->pos;
+    
+    // read 
+    for( uint32_t i = 0; i < nmemb; i++ ) {
+        int res = fat16_read_internal( disk, fat16_get_first_cluster( item ), offset, size, out );
+        if( res < 0 ) return res;
+        out+=size;
+        offset+=size;
+    }
+    return nmemb;
 }
