@@ -121,7 +121,7 @@ out:
     return res;
 }
 
-int fseek( int fd, int offset, FILE_SEED_MODE whence ) {
+int fseek( int fd, int offset, FILE_SEEK_MODE whence ) {
     // get file descriptor
     struct file_descriptor* desc = file_get_descriptor( fd );
     if( !desc ) return -EINVARG;

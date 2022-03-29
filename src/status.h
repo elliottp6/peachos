@@ -7,3 +7,4 @@
 #define EBADPATH 4 // malformed path
 #define EFSNOTUS 5 // disk does not conform to the filesystem that is attempting to resolve to the disk
 #define ERDONLY 6 // filesystem is read-only
+#define EUNIMP 7 // not implemented

@@ -5,7 +5,7 @@
 #include "pparser.h"
 
 // enums
-typedef uint32_t FILE_SEED_MODE; enum { SEEK_SET, SEEK_CUR, SEEK_END };
+typedef uint32_t FILE_SEEK_MODE; enum { SEEK_SET, SEEK_CUR, SEEK_END };
 typedef uint32_t FILE_MODE; enum { FILE_MODE_READ, FILE_MODE_WRITE, FILE_MODE_APPEND, FILE_MODE_INVALID };
 
 // forward declaration
@@ -15,7 +15,7 @@ struct disk;
 typedef int (*FS_RESOLVE_FUNCTION)( struct disk* disk ); // can the VHS read this filesystem?
 typedef void*(*FS_OPEN_FUNCTION)( struct disk* disk, struct path_part* path, FILE_MODE mode );
 typedef int (*FS_READ_FUNCTION)( struct disk* disk, void* private, uint32_t size, uint32_t nmemb, char* out );
-typedef int (*FS_SEEK_FUNCTION)( void* private, uint32_t offset, FILE_SEED_MODE mode );
+typedef int (*FS_SEEK_FUNCTION)( void* private, uint32_t offset, FILE_SEEK_MODE mode );
 
 // types
 struct filesystem { // filesystem interface
@@ -37,6 +37,6 @@ struct file_descriptor {
 void fs_init(); // initialize the filesystems
 int fopen( const char* filename, const char* mode_string ); // open a file given only a path
 int fread( void* buffer, uint32_t size, uint32_t nmemb, int fd );
-int fseek( int fd, int offset, FILE_SEED_MODE whence );
+int fseek( int fd, int offset, FILE_SEEK_MODE whence );
 void fs_insert_filesystem( struct filesystem* filesystem ); // add filesystem to the system
 struct filesystem* fs_resolve( struct disk* disk ); // determine the filesystem on this disk

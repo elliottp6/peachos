@@ -11,6 +11,7 @@
 #include "fs/pparser.h"
 #include "disk/streamer.h"
 #include "string/string.h"
+#include "memory/memory.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -82,8 +83,9 @@ void kernel_main() {
     else {
         print( "opened hello.txt\n" );
         char buf[14];
-        fread( buf, 13, 1, fd );
-        buf[13] = 0; // insert null terminator
+        memset( buf, 0, sizeof( buf ) );
+        fseek( fd, 2, SEEK_SET );
+        fread( buf, 11, 1, fd );
         print( buf );
     }
     while( 1 );
