@@ -5,13 +5,13 @@
 #include "io/io.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
-#include "fs/file.h"
 #include "disk/disk.h"
 #include "string/string.h"
 #include "fs/pparser.h"
 #include "disk/streamer.h"
 #include "string/string.h"
 #include "memory/memory.h"
+#include "fs/file.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -82,11 +82,19 @@ void kernel_main() {
     if( !fd ) print( "could NOT open hello.txt\n" );
     else {
         print( "opened hello.txt\n" );
+
+        // seek & read from file
         char buf[14];
         memset( buf, 0, sizeof( buf ) );
         fseek( fd, 2, SEEK_SET );
         fread( buf, 11, 1, fd );
         print( buf );
+        print( "\n" );
+
+        // get file status
+        struct file_stat stat;
+        fstat( fd, &stat );
+        if( 12 == stat.filesize ) print( "got 12 bytes for size\n" ); else print( "size was incorrect\n" );
     }
     while( 1 );
 

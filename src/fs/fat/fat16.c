@@ -120,13 +120,15 @@ int fat16_resolve( struct disk* disk );
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode );
 int fat16_read( struct disk* disk, void* descriptor, uint32_t size, uint32_t nmemb, char* out );
 int fat16_seek( void* private, uint32_t offset, FILE_SEEK_MODE seek_mode );
+int fat16_stat( struct disk* disk, void* private, struct file_stat* stat );
 
 // FAT16 VFS structure
 struct filesystem fat16_fs = {
     .resolve = fat16_resolve,
     .open = fat16_open,
     .read = fat16_read,
-    .seek = fat16_seek
+    .seek = fat16_seek,
+    .stat = fat16_stat
 };
 
 // functions
@@ -480,6 +482,22 @@ struct fat_item* fat16_get_directory_entry( struct disk* disk, struct path_part*
         return NULL; // if any of the 'path' remains, then we didn't fully resolve the path
     }
     return item;
+}
+
+int fat16_stat( struct disk* disk, void* private, struct file_stat* stat ) {
+    struct fat_file_descriptor* desc = private;
+    struct fat_item* desc_item = desc->item;
+    
+    // we only support files for now
+    if( FAT_ITEM_TYPE_FILE != desc_item->type ) return -EINVARG;
+
+    // get directory
+    struct fat_directory_item* ritem = desc->item->item;
+    
+    // set status
+    stat->filesize = ritem->filesize;
+    stat->flags = FAT_FILE_READ_ONLY == ritem->attribute ? FILE_STAT_READ_ONLY : 0;
+    return 0;
 }
 
 // takes a path and returns a file descriptor TODO: how does callee know if there's an error?
