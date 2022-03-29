@@ -59,10 +59,13 @@ static int file_new_descriptor( struct file_descriptor** desc_out ) {
     int i = fs_get_free_file_descriptor_slot_index();
     if( i < 0 ) { *desc_out = NULL; return -ENOMEM; }
 
-    // create file descriptor and put it into slot
+    // allocate file descriptor
     struct file_descriptor* desc = kzalloc( sizeof( struct file_descriptor ) );
-    desc->index = i + 1; // descriptor indices start @ 1
+    if( !desc ) return -ENOMEM;
+
+    // insert descriptor into slow
     file_descriptors[i] = desc;
+    desc->index = i + 1; // descriptor indices start @ 1
     *desc_out = desc;
     return 0;
 }
@@ -88,11 +91,11 @@ FILE_MODE file_get_mode_by_string( const char* str ) {
 int fopen( const char* filename, const char* mode_string ) {
     // parse path
     int res = 0;
-    struct path_root* root_path = pathparser_parse( filename, NULL );
-    if( !root_path || !root_path->first ) { res = -EINVARG; goto out; }
+    struct path_root* path = pathparser_parse( filename, NULL );
+    if( !path || !path->first ) { res = -EINVARG; goto out; }
 
     // get disk and check for filesystem
-    struct disk* disk = disk_get( root_path->drive_no );
+    struct disk* disk = disk_get( path->drive_no );
     if( !disk || !disk->filesystem ) { res = -EIO; goto out; }
     
     // determine file mode
@@ -100,7 +103,7 @@ int fopen( const char* filename, const char* mode_string ) {
     if( FILE_MODE_INVALID == mode ) { res = -EINVARG; goto out; }
 
     // tell filesystem to open the file
-    void* descriptor_private_data = disk->filesystem->open( disk, root_path->first, mode );
+    void* descriptor_private_data = disk->filesystem->open( disk, path->first, mode );
     if( ISERR( descriptor_private_data ) ) { res = ERROR_I( descriptor_private_data ); goto out; }
 
     /// create & initialize a new file descriptor
@@ -116,9 +119,19 @@ out:
     // TODO: if( root_path ) pathparser_free( root_path ); // <-- this seems VERY important, but in the lecture he does not clear the memory
     if( res < 0 ) { 
         // TODO: clear memory... isn't there more that needs to be done here?
+        pathparser_free( path );
         return 0; // fopen shouldn't return negative values
     }
     return res;
+}
+
+int fstat( int fd, struct file_stat* stat ) {
+    // get file descriptor
+    struct file_descriptor* desc = file_get_descriptor( fd );
+    if( !desc ) return -EINVARG;
+
+    // get file status
+    return desc->filesystem->stat( desc->disk, desc->private, stat );
 }
 
 int fseek( int fd, int offset, FILE_SEEK_MODE whence ) {
