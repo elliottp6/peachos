@@ -50,8 +50,13 @@ void fs_init() {
 }
 
 static int fs_get_free_file_descriptor_slot_index() {
-    for( int i = 0; i < PEACHOS_MAX_FILE_DESCRIPTORS; i++ ) if( 0 == file_descriptors[i] ) return i;
+    for( int i = 0; i < PEACHOS_MAX_FILE_DESCRIPTORS; i++ ) if( !file_descriptors[i] ) return i;
     return -1;
+}
+
+static void file_free_descriptor( struct file_descriptor* desc ) {
+    file_descriptors[desc->index - 1] = NULL;
+    kfree( desc );
 }
 
 static int file_new_descriptor( struct file_descriptor** desc_out ) {
@@ -140,7 +145,10 @@ int fclose( int fd ) {
     if( !desc ) return -EINVARG;
 
     // close file
-    return desc->filesystem->close( desc->private );
+    int res = desc->filesystem->close( desc->private );
+    if( res < 0 ) return res;
+    file_free_descriptor( desc );
+    return 0;
 }
 
 int fseek( int fd, int offset, FILE_SEEK_MODE whence ) {

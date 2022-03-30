@@ -95,6 +95,9 @@ void kernel_main() {
         struct file_stat stat;
         fstat( fd, &stat );
         if( 12 == stat.filesize ) print( "got 12 bytes for size\n" ); else print( "size was incorrect\n" );
+
+        // close the file
+        if( 0 == fclose( fd ) ) print( "closed file successfully\n" );
     }
     while( 1 );
 
