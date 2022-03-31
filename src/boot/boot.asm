@@ -59,17 +59,17 @@ load_protected:
     
 ; GDT (global descriptor table)
 gdt_start:
-gdt_null:
+gdt_null: ; null segment
     dd 0x0
     dd 0x0
-gdt_code: ; offset 0x8, linked to CS
+gdt_code: ; code segment, offset 0x8, linked to CS
     dw 0xffff
     dw 0 ; base first 0-15 bits
     db 0 ; base 16-32 bits
     db 0x9A ; access byte
     db 11001111b ; high 4 bit flats & low 4 bit flags
     db 0 ; base 24-31 bits
-gdt_data: ; offset 0x10, linked to DS, SS, ES, FS, GS
+gdt_data: ; data segment, offset 0x10, linked to DS, SS, ES, FS, GS
     dw 0xffff
     dw 0 ; base first 0-15 bits
     db 0 ; base 16-32 bits

@@ -19,3 +19,6 @@
 #define PEACHOS_MAX_FILESYSTEMS 12
 #define PEACHOS_MAX_FILE_DESCRIPTORS 512
 #define PEACHOS_MAX_PATH 108
+
+// global descriptor table (GDT)
+#define PEACHOS_TOTAL_GDT_SEGMENTS 3 // null segment, code segment, data segment
