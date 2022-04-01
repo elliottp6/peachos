@@ -23,11 +23,12 @@ struct paging_4gb_chunk { uint32_t* directory_entry; };
 // functions
 uint32_t* paging_4gb_chunk_get_directory( struct paging_4gb_chunk* chunk );
 struct paging_4gb_chunk* paging_new_4gb( uint8_t flags );
+void paging_free_4gb( struct paging_4gb_chunk* chunk );
 void paging_switch( uint32_t* directory );
 void enable_paging(); // warning: must create page tables & switch to a given directory BEFORE enabling paging (or else, kernel panic)
 
 // checks is a 'address' is aligned to page boundary
 bool paging_is_aligned( void* address );
 
-// 
+// set a virtual page to point to a given physical page
 int paging_set( uint32_t* directory, void* virtual_address, uint32_t value );
