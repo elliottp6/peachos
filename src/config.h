@@ -22,3 +22,11 @@
 
 // global descriptor table (GDT)
 #define PEACHOS_TOTAL_GDT_SEGMENTS 6 // null segment, kernel code segment, kernel data segment, user code segment, user data segment, tss segment
+
+// tasks
+#define PEACHOS_PROGRAM_VIRTUAL_ADDRESS 0x400000
+#define PEACHOS_USER_PROGRAM_STACK_SIZE = 1024 & 16 // 16 KB stack
+#define PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START 0x3FF000
+#define PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END (PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START - PEACHOS_USER_PROGRAM_STACK_SIZE) // stack grows downwards on intel chips
+#define USER_DATA_SEGMENT 0x23 // GDT offset
+#define USER_CODE_SEGMENT 0x1B // ...

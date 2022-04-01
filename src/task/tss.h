@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-struct tss { // task switch segment
+struct tss { // task state segment
     uint32_t link;
     uint32_t esp0; // Kernel stack pointer
     uint32_t ss0; // Kernel stack segment
