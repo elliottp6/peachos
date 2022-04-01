@@ -21,4 +21,4 @@
 #define PEACHOS_MAX_PATH 108
 
 // global descriptor table (GDT)
-#define PEACHOS_TOTAL_GDT_SEGMENTS 3 // null segment, code segment, data segment
+#define PEACHOS_TOTAL_GDT_SEGMENTS 6 // null segment, kernel code segment, kernel data segment, user code segment, user data segment, tss segment

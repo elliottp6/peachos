@@ -15,6 +15,7 @@
 #include "fs/file.h"
 #include "gdt/gdt.h"
 #include "config.h"
+#include "task/tss.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -49,11 +50,15 @@ static struct paging_4gb_chunk* kernel_chunk = 0;
 
 void panic( const char* msg ) { print( msg ); while( 1 ); }
 
+struct tss tss;
 struct gdt gdt_real[PEACHOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
     {.base = 0x00, .limit = 0x00, .type = 0x00}, // null segment
     {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A}, // kernel code segment
     {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92}, // kernel data segment
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xF8},  // user code segment (it's ok to use the same segment, b/c we're using paging to separate it from the kernel)
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xF2}, // user data segment
+    {.base = (uint32_t)&tss, .limit = sizeof( tss ), .type = 0xE9} // tss segment
 };
 
 void kernel_main() {
@@ -61,11 +66,11 @@ void kernel_main() {
     terminal_initialize();
     print( "initialized terminal\n" );
 
-    // initialize the GDT
+    // load the GDT
     memset( gdt_real, 0, sizeof( gdt_real ) );
     gdt_structured_to_gdt( gdt_real, gdt_structured, PEACHOS_TOTAL_GDT_SEGMENTS );
     gdt_load( gdt_real, sizeof( gdt_real ) );
-    print( "initialized the GDT\n" );
+    print( "loaded the GDT\n" );
 
     // initialize the kernel heap
     kheap_init();
@@ -84,16 +89,26 @@ void kernel_main() {
     if( 0 == disk_search_and_init() ) print( "found FAT16 filesystem on disk @ index 0\n" );
     else print( "failed to bind disk to filesystem\n" );
 
+    // initialize IDT
+    idt_init();
+    print( "initialized IDT\n" );
+
+    // setup the TSS
+    memset( &tss, 0, sizeof( tss ) );
+    tss.esp0 = 0x600000;
+    tss.ss0 = KERNEL_DATA_SELECTOR;
+    tss_load( 0x28 );
+    print( "loaded the TSS\n" );
+
     // initialize page tables
     kernel_chunk = paging_new_4gb( PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL );
     paging_switch( paging_4gb_chunk_get_directory( kernel_chunk ) );
     enable_paging();
     print( "initialized page tables & enabled paging\n" );
 
-    // initialize IDT & enable interrupts
-    idt_init();
+    // enable interrupts
     enable_interrupts();
-    print( "initialized IDT & enabled interrupts\n" );
+    print( "enabled interrupts\n" );
 
     // test opening a file
     int fd = fopen( "0:/hello.txt", "r" );
