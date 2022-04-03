@@ -8,7 +8,7 @@ struct gdt { // corresponds to the GDT that the processor requires (same as in b
     uint8_t access;
     uint8_t high_flags;
     uint8_t base_24_31_bits;  
-};
+} __attribute__((packed)); // must be packed b/c the CPU directly reads this structure from memory
 
 struct gdt_structured {
     uint32_t base;
