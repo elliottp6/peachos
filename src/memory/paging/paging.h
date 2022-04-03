@@ -10,7 +10,7 @@
 #define PAGING_CACHE_DISABLED  0b00010000
 #define PAGING_WRITE_THROUGH   0b00001000
 #define PAGING_ACCESS_FROM_ALL 0b00000100 // allows access from all privilege levels
-#define PAGING_IS_WRITABLE     0b00000010
+#define PAGING_IS_WRITEABLE     0b00000010
 #define PAGING_IS_PRESENT      0b00000001
 
 #define PAGING_TOTAL_ENTRIES_PER_TABLE 1024
@@ -30,5 +30,9 @@ void enable_paging(); // warning: must create page tables & switch to a given di
 // checks is a 'address' is aligned to page boundary
 bool paging_is_aligned( void* address );
 
-// set a virtual page to point to a given physical page
+// page mapping
 int paging_set( uint32_t* directory, void* virtual_address, uint32_t value );
+int paging_map( uint32_t* directory, void* virt, void* phys, int flags );
+int paging_map_range( uint32_t* directory, void* virt, void* phys, int count, int flags );
+int paging_map_to( uint32_t* directory, void* virt, void* phys, void* phys_end, int flags );
+void* paging_align_address( void* address );

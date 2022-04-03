@@ -13,7 +13,7 @@ struct paging_4gb_chunk* paging_new_4gb( uint8_t flags ) {
     for( int i = 0, offset = 0; i < PAGING_TOTAL_ENTRIES_PER_TABLE; i++, offset += PAGING_TABLE_SIZE ) {
         uint32_t* entry = kzalloc( sizeof( uint32_t ) * PAGING_TOTAL_ENTRIES_PER_TABLE );
         for( int b = 0; b < PAGING_TOTAL_ENTRIES_PER_TABLE; b++ ) entry[b] = (offset + (b * PAGING_PAGE_SIZE)) | flags;
-        directory[i] = (uint32_t)entry | flags | PAGING_IS_WRITABLE;
+        directory[i] = (uint32_t)entry | flags | PAGING_IS_WRITEABLE;
     }
 
     // wrap directory in the paging_4gb_chunk struct
@@ -41,17 +41,49 @@ uint32_t* paging_4gb_chunk_get_directory( struct paging_4gb_chunk* chunk ) { ret
 
 bool paging_is_aligned( void* address ) { return 0 == ((uint32_t)address % PAGING_PAGE_SIZE); }
 
-int paging_get_indexes( void* virtual_address, uint32_t* directory_index_out, uint32_t* table_index ) {
-    // check alignment
-    int res = 0;
-    if( !paging_is_aligned( virtual_address ) ) { res = -EINVARG; goto out; }
-
-    // calculate directory & table
+int paging_get_indexes( void* virtual_address, uint32_t* directory_index_out, uint32_t* table_index_out ) {
+    if( !paging_is_aligned( virtual_address ) ) return -EINVARG;
     *directory_index_out = (uint32_t)virtual_address / PAGING_TABLE_SIZE;
-    *table_index = ((uint32_t)virtual_address % PAGING_TABLE_SIZE) / PAGING_PAGE_SIZE; // remainder of directory_index rounded down to page_size
+    *table_index_out = ((uint32_t)virtual_address % PAGING_TABLE_SIZE) / PAGING_PAGE_SIZE; // remainder of directory_index rounded down to page_size
+    return 0;
+}
 
-out:
-    return res;
+void* paging_align_address( void* address ) { // aligns address by rounding up
+    uint32_t remainder = (uint32_t)address % PAGING_PAGE_SIZE;
+    if( remainder ) return (void*)((uint32_t)address + PAGING_PAGE_SIZE - remainder);
+    return address;
+}
+
+int paging_map( uint32_t* directory, void* virt, void* phys, int flags ) {
+    // check alignment
+    if( (uint32_t)virt % PAGING_PAGE_SIZE || (uint32_t)phys % PAGING_PAGE_SIZE ) return -EINVARG;
+    
+    // set the page
+    return paging_set( directory, virt, (uint32_t)phys | flags );
+}
+
+// TODO: bugfix in lecture 68: the '0 != (res = paging_map'... line was '0 == (res = paging_map'...
+int paging_map_range( uint32_t* directory, void* virt, void* phys, int count, int flags ) {
+     int res;
+     for( int i = 0; i < count; i++ ) {
+         if( 0 != (res = paging_map( directory, virt, phys, flags )) ) return res;
+         virt += PAGING_PAGE_SIZE;
+         phys += PAGING_PAGE_SIZE;
+     }
+     return 0;
+}
+
+int paging_map_to( uint32_t* directory, void* virt, void* phys, void* phys_end, int flags ) {
+    // sanity check addresses
+    if( (uint32_t)virt % PAGING_PAGE_SIZE || (uint32_t)phys % PAGING_PAGE_SIZE ||
+        (uint32_t)phys_end % PAGING_PAGE_SIZE || (uint32_t)phys_end < (uint32_t)phys )
+        return -EINVARG;
+
+    // calculate size of mapping
+    uint32_t total_bytes = phys_end - phys, total_pages = total_bytes / PAGING_PAGE_SIZE;
+
+    // do the mapping
+    return paging_map_range( directory, virt, phys, total_pages, flags );
 }
 
 int paging_set( uint32_t* directory, void* virtual_address, uint32_t value ) {
