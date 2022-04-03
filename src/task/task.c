@@ -3,6 +3,7 @@
 #include "status.h"
 #include "memory/memory.h"
 #include "memory/heap/kheap.h"
+#include "process.h"
 
 // data
 struct task* current_task = NULL; // current task that's running
@@ -29,7 +30,7 @@ static void task_list_remove( struct task* task ) {
     if( current_task == task ) current_task = task_get_next();
 }
 
-int task_init( struct task* task ) {
+int task_init( struct task* task, struct process* process ) {
     // clear structure
     memset( task, 0, sizeof( struct task ) );
 
@@ -42,6 +43,7 @@ int task_init( struct task* task ) {
     task->registers.ip = PEACHOS_PROGRAM_VIRTUAL_ADDRESS;
     task->registers.ss = USER_DATA_SEGMENT;
     task->registers.esp = PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+    task->process = process;
     return 0;
 }
 
@@ -52,14 +54,14 @@ int task_free( struct task* task ) {
     return 0;
 }
 
-struct task* task_new() {
+struct task* task_new( struct process* process ) {
     // allocate the task
     struct task* task = kzalloc( sizeof( struct task ) );
     if( !task ) return ERROR( -ENOMEM );
 
     // initialize the task
     int res;
-    if( (res = task_init( task )) < 0 ) goto out;
+    if( (res = task_init( task, process )) < 0 ) goto out;
 
     // insert task into linked list
     task_list_insert( task );

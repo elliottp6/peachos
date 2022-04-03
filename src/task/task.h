@@ -18,14 +18,19 @@ struct registers {
     uint32_t ss;
 };
 
+// forward declarations
+struct process;
+
+// types
 struct task {
     struct paging_4gb_chunk* paging_directory; // page tables for this task
     struct registers registers; // holds registers when task is not running
+    struct process* process;
     struct task *next, *prev; // previous & next task in the linked list
 };
 
 // functions
-struct task* task_new();
+struct task* task_new( struct process* process );
 struct task* task_current();
 struct task* task_get_next();
 int task_free( struct task* task );
