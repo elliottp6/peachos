@@ -4,6 +4,7 @@
 int strlen( const char* p );
 int strnlen( const char* p, int max );
 char* strcpy( char* dest, const char* src );
+char* strncpy( char* dest, const char* src, int count );
 int strncmp( const char* s1, const char* s2, int len );
 int istrncmp( const char* s1, const char* s2, int len );
 int strnlen_terminator( const char* s, int max, char terminator );

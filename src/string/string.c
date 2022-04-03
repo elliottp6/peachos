@@ -1,5 +1,6 @@
 #include "string.h"
 #include <stdint.h>
+#include <stddef.h>
 
 char tolower( char c ) { return c >= 65 && c <= 90 ? c + 32 : c; }
 
@@ -42,6 +43,13 @@ int strncmp( const char* s1, const char* s2, int len ) {
 char* strcpy( char* dest, const char* src ) {
     int i = 0;
     do dest[i] = src[i]; while( src[i++] ); // do-while loop ensures we copy the null terminator!
+    return dest;
+}
+
+char* strncpy( char* dest, const char* src, int count ) {
+    int i = 0;
+    for( i = 0; i < count - 1 && src[i]; i++ ) dest[i] = src[i];
+    dest[i] = NULL;
     return dest;
 }
 
