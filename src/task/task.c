@@ -57,7 +57,7 @@ int task_free( struct task* task ) {
 // change the current task that's running & change the page directories to point to the tasks'
 int task_switch( struct task* task ) {
     current_task = task;
-    paging_switch( task->page_directory->directory_entry );
+    paging_switch( task->paging_directory->directory_entry );
     return 0;
 }
 
