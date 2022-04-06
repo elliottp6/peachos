@@ -54,6 +54,33 @@ int task_free( struct task* task ) {
     return 0;
 }
 
+// change the current task that's running & change the page directories to point to the tasks'
+int task_switch( struct task* task ) {
+    current_task = task;
+    paging_switch( task->page_directory->directory_entry );
+    return 0;
+}
+
+// interrupt in userland causes our kernel to run
+// from our kernel, we'll want to call this to restore the user registers
+// before switching the task
+int task_page() {
+    user_registers();
+    task_switch( current_task );
+    return 0;
+}
+
+void task_run_first_ever_task() {
+    // TODO: shouldn't this check for task_head?
+    if( !current_task ) panic( "task_run_first_ever_task(): No current task exists!\n" );
+    
+    // switch the page directory & set current_task
+    task_switch( task_head );
+
+    // drop into userland
+    task_return( &task_head->registers );
+}
+
 struct task* task_new( struct process* process ) {
     // allocate the task
     struct task* task = kzalloc( sizeof( struct task ) );

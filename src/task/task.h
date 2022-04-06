@@ -3,6 +3,7 @@
 #include "memory/paging/paging.h"
 
 struct registers {
+    // general purpose registers
     uint32_t edi;
     uint32_t esi;
     uint32_t ebp;
@@ -11,11 +12,12 @@ struct registers {
     uint32_t ecx;
     uint32_t eax;
 
+    // special purpose registers
     uint32_t ip; // instruction pointer
-    uint32_t cs;
-    uint32_t flags;
-    uint32_t esp;
-    uint32_t ss;
+    uint32_t cs; // code segment
+    uint32_t flags; // flags
+    uint32_t esp; // stack pointer
+    uint32_t ss; // stack segment
 };
 
 // forward declarations
@@ -34,7 +36,11 @@ struct task* task_new( struct process* process );
 struct task* task_current();
 struct task* task_get_next();
 int task_free( struct task* task );
+int task_switch(struct task* task);
+int task_page();
+void task_run_first_ever_task();
 
 // assembly functions
-void user_registers(); // sets data-seg, extra-seg, f-seg, g-seg to 0x23
-void restore_general_purpose_registers( struct registers* regs );
+void task_return( struct registers* regs );
+void restore_general_purpose_registers( struct registers* regs) ;
+void user_registers();
