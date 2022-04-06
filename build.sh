@@ -3,7 +3,7 @@ export PREFIX="$HOME/opt/cross"
 export TARGET=i686-elf
 export PATH="$PREFIX/bin:$PATH"
 
-# build folders
+# build folder for OS
 mkdir -p bin
 mkdir -p build
 mkdir -p build/idt
@@ -17,6 +17,9 @@ mkdir -p build/fs
 mkdir -p build/fs/fat
 mkdir -p build/gdt
 mkdir -p build/task
+
+# build folder for programs
+mkdir -p build/programs
 
 # make project
 make all && qemu-system-i386 -hda bin/os.bin
