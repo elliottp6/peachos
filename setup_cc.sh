@@ -9,6 +9,10 @@ cd ~/src
 wget --no-clobber https://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz
 wget --no-clobber https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz
 
+# extract binutils & gcc
+tar -xf binutils-2.35.tar.xz
+tar -xf gcc-10.2.0.tar.xz
+
 # setup environment variables
 export PREFIX="$HOME/opt/cross"
 export TARGET=i686-elf
