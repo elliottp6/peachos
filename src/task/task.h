@@ -34,3 +34,7 @@ struct task* task_new( struct process* process );
 struct task* task_current();
 struct task* task_get_next();
 int task_free( struct task* task );
+
+// assembly functions
+void user_registers(); // sets data-seg, extra-seg, f-seg, g-seg to 0x23
+void restore_general_purpose_registers( struct registers* regs );
