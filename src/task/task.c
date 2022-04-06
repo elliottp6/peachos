@@ -17,7 +17,7 @@ struct task* task_current() { return current_task; } // returns the current task
 struct task* task_get_next() { return current_task->next ? current_task->next : task_head; }
 
 static void task_list_insert( struct task* task ) {
-    if( NULL == task_head ) { task_head = task_tail = task; return; }    
+    if( NULL == task_head ) { current_task = task_head = task_tail = task; return; }    
     task_tail->next = task;
     task->prev = task_tail;
     task_tail = task;
@@ -42,6 +42,7 @@ int task_init( struct task* task, struct process* process ) {
     // initialze the registers
     task->registers.ip = PEACHOS_PROGRAM_VIRTUAL_ADDRESS;
     task->registers.ss = USER_DATA_SEGMENT;
+    task->registers.cs = USER_CODE_SEGMENT;
     task->registers.esp = PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
     task->process = process;
     return 0;

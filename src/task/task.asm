@@ -33,7 +33,8 @@ task_return:
     mov fs, ax
     mov gs, ax
 
-    push dword [ebx+4]
+    ; call 'restore general_purpose_registers'
+    push dword [ebp+4] ; push a copy of the pointer to 1st arg so it becomes 1st arg for 'restore_general_purpose_registers'
     call restore_general_purpose_registers
     add esp, 4 ; need to pop stack, but cannot b/c it would corrupt the registers that we just wrote! So, do the pop like this instead.
 
@@ -58,7 +59,7 @@ restore_general_purpose_registers:
     mov ebx, [ebx+12] ; do ebx last, since that held our pointer to the argument
 
     ; C function exit
-    pop esp
+    pop ebp
     ret
 
 ; change all the segment registers to the USER_DATA_SEGMENT

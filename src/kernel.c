@@ -16,6 +16,9 @@
 #include "gdt/gdt.h"
 #include "config.h"
 #include "task/tss.h"
+#include "task/task.h"
+#include "task/process.h"
+#include "status.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -106,11 +109,20 @@ void kernel_main() {
     enable_paging();
     print( "initialized page tables & enabled paging\n" );
 
+    // load program
+    struct process* process = NULL;
+    int res = process_load( "0:/blank.bin", &process );
+    if( PEACHOS_ALL_OK != res ) panic( "failed to load blank.bin\n" ); else print( "Loaded blank.bin OK\n" );
+
+    // run first task
+    task_run_first_ever_task();
+
     // enable interrupts
     enable_interrupts();
     print( "enabled interrupts\n" );
 
     // test opening a file
+    /*
     int fd = fopen( "0:/hello.txt", "r" );
     if( !fd ) print( "could NOT open hello.txt\n" );
     else {
@@ -133,6 +145,7 @@ void kernel_main() {
         if( 0 == fclose( fd ) ) print( "closed file successfully\n" );
     }
     while( 1 );
+    */
 
     //  --test page tables -- : map virtual address '0x1000' to 'p'
     //char *p = kzalloc( 4096 ), *p2 = (char*)0x1000;

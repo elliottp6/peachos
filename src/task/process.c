@@ -105,7 +105,7 @@ int process_load_for_slot( const char* filename, struct process** process, int p
 
     // create a task
     struct task* task = task_new( _process );
-    if( 0 == ERROR_I( task ) ) { res = ERROR_I( task ); }
+    if( 0 == ERROR_I( task ) ) { res = ERROR_I( task ); goto out; }
     _process->task = task;
 
     // map the memory
