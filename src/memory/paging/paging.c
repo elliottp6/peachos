@@ -22,9 +22,9 @@ struct paging_4gb_chunk* paging_new_4gb( uint8_t flags ) {
     return chunk_4gb;
 }
 
-void paging_switch( uint32_t* directory ) {
-    paging_load_directory( directory );
-    current_directory = directory;
+void paging_switch( struct paging_4gb_chunk* directory ) {
+    paging_load_directory( directory->directory_entry );
+    current_directory = directory->directory_entry;
 }
 
 void paging_free_4gb( struct paging_4gb_chunk* chunk ) {
@@ -54,16 +54,16 @@ void* paging_align_address( void* address ) { // aligns address by rounding up
     return address;
 }
 
-int paging_map( uint32_t* directory, void* virt, void* phys, int flags ) {
+int paging_map( struct paging_4gb_chunk* directory, void* virt, void* phys, int flags ) {
     // check alignment
     if( (uint32_t)virt % PAGING_PAGE_SIZE || (uint32_t)phys % PAGING_PAGE_SIZE ) return -EINVARG;
     
     // set the page
-    return paging_set( directory, virt, (uint32_t)phys | flags );
+    return paging_set( directory->directory_entry, virt, (uint32_t)phys | flags );
 }
 
 // TODO: bugfix in lecture 68: the '0 != (res = paging_map'... line was '0 == (res = paging_map'...
-int paging_map_range( uint32_t* directory, void* virt, void* phys, int count, int flags ) {
+int paging_map_range( struct paging_4gb_chunk* directory, void* virt, void* phys, int count, int flags ) {
      int res;
      for( int i = 0; i < count; i++ ) {
          if( 0 != (res = paging_map( directory, virt, phys, flags )) ) return res;
@@ -73,7 +73,7 @@ int paging_map_range( uint32_t* directory, void* virt, void* phys, int count, in
      return 0;
 }
 
-int paging_map_to( uint32_t* directory, void* virt, void* phys, void* phys_end, int flags ) {
+int paging_map_to( struct paging_4gb_chunk* directory, void* virt, void* phys, void* phys_end, int flags ) {
     // sanity check addresses
     if( (uint32_t)virt % PAGING_PAGE_SIZE || (uint32_t)phys % PAGING_PAGE_SIZE ||
         (uint32_t)phys_end % PAGING_PAGE_SIZE || (uint32_t)phys_end < (uint32_t)phys )

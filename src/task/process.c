@@ -56,7 +56,7 @@ static int process_load_data( const char* filename, struct process* process ) { 
 
 int process_map_binary( struct process* process ) {
     return paging_map_to(
-        process->task->paging_directory->directory_entry,
+        process->task->paging_directory,
         (void*)PEACHOS_PROGRAM_VIRTUAL_ADDRESS,
         process->ptr,
         paging_align_address( process->ptr + process->size ),
