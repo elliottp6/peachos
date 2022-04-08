@@ -60,3 +60,24 @@ void idt_init() {
     // load the interrupt descriptor table
     idt_load( &idtr_descriptor );
 }
+
+void isr80h_handle_command( int command, struct interrupt_frame* frame ) {
+    // TODO
+}
+
+void* isr80h_handler( int command, struct interrupt_frame* frame ) {
+    void* res = 0;
+
+    // switch to the kernel page
+    kernel_page();
+
+    // copy interrupt_frame's registers into task (this allows us to switch tasks if we wanted to)
+    task_current_save_state( frame );
+
+    // run the command
+    res = isr80h_handle_command( command, frame );
+
+    // switch back to task page
+    task_page();
+    return res;
+}

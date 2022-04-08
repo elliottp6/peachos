@@ -1,9 +1,14 @@
+; code type
 [BITS 32]
 
-global _start ; export '_start'
+; imports
+extern kernel_main
 
-extern kernel_main ; import 'kernel_main'
+; exports
+global _start
+global kernel_registers
 
+; defines
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
 
@@ -47,6 +52,15 @@ _start:
 
     ; infinite loop
     jmp $
+
+; change segment registers to point to the kernel data segment
+kernel_registers:
+    mov ax, 10
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
+    ret
 
 ; padding to make this file 16-byte aligned (which allows it to mix w/ C object files in the same text section)
 times 512-($ - $$) db 0

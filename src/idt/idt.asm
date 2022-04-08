@@ -1,13 +1,18 @@
-section .asm ; when linking, put this in the unaligned ASM section
+; assembly section
+section .asm
 
-global int21h
-global idt_load ; export this symbol
-global no_interrupt
+; imports
+extern int21h_handler
+extern no_interrupt_handler
+extern isr80h_handler
+
+; exports
 global enable_interrupts
 global disable_interrupts
-
-extern int21h_handler ; import this symbol
-extern no_interrupt_handler
+global idt_load
+global int21h
+global no_interrupt
+global isr80h_wrapper
 
 enable_interrupts:
     sti
@@ -30,19 +35,37 @@ idt_load:
     pop ebp
     ret
 
-int21h:
-    cli ; disable interrupts
+int21h: ; note: interrupts will be auto-disabled upon entry b/c of type of interrupt (idt_desc type_attr), so we don't need cli/sti to enable/disable interrupts
     pushad ; push all general purpose registers
     call int21h_handler
     popad ; pop all general purpose registers
-    sti ; enable interrupts
     iret ; return from interrupt
 
 no_interrupt:
-    cli ; disable interrupts
     pushad ; push all general purpose registers
     call no_interrupt_handler
     popad ; pop all general purpose registers
-    sti ; enable interrupts
     iret ; return from interrupt
  
+isr80h_wrapper:
+    ; interrupt frame start
+    pushad ; push all general purpose registers (uint32_t ip, cs, flags, sp, ss already pushed by processor before entering this handler)
+    ; interrupt frame end
+
+    ; call isr80h_handler
+    push esp ; push arg: stack pointer (points to interrupt frame)
+    push eax ; push arg: contains the command that our kernel will invoke
+    call isr80h_handler ; call handler
+    mov dword[return_code], eax ; stash return code (which is in eax)
+    add esp, 8 ; pop arguments
+
+    ; restore general purpose regs from interrupt frame start
+    popad
+    mov eax, [return_code]
+    iretd
+
+; data section
+section .data
+
+; temporary space to hold return code for isr80h_handler
+return_code: dd 0
