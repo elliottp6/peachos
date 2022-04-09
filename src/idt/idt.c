@@ -2,16 +2,21 @@
 #include "config.h"
 #include "kernel.h"
 #include "memory/memory.h"
+#include "task/task.h"
 #include "io/io.h"
 
 // interrupt descriptor table
 struct idt_desc idt_descriptors[PEACHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
+// function pointers for 0x80 interrupt (kernel call from userland)
+static ISR80H_COMMAND isr80h_commands[PEACH_MAX_ISR80H_COMMANDS];
+
 // defined in idt.asm
 extern void idt_load( struct idtr_desc* p );
 extern void int21h();
 extern void no_interrupt();
+extern void isr80h_wrapper();
 
 void idt_set( int i, void* func ) {
     struct idt_desc* desc = &idt_descriptors[i];
@@ -57,25 +62,43 @@ void idt_init() {
     // set interrupt 0x21 (keyboard input)
     idt_set( 0x21, int21h );
 
+    // kernel call from userland
+    idt_set( 0x80, isr80h_wrapper );
+
     // load the interrupt descriptor table
     idt_load( &idtr_descriptor );
 }
 
-void isr80h_handle_command( int command, struct interrupt_frame* frame ) {
-    // TODO
+void isr80h_register_command( int command, ISR80H_COMMAND function ) {
+    // bounds check
+    if( command <= 0 || command >= PEACH_MAX_ISR80H_COMMANDS )
+        panic( "attempt to register a kernel command that is out-of-bounds\n" );
+
+    // empty slot check
+    if( isr80h_commands[command] ) 
+        panic( "attempted to overwrite an existing command\n" );
+
+    // set slot
+    isr80h_commands[command] = function;
+}
+
+void* isr80h_handle_command( int command, struct interrupt_frame* frame ) {
+    // bounds check
+    if( command <= 0 || command >= PEACH_MAX_ISR80H_COMMANDS ) return NULL;
+
+    // return command (note that NULL is OK, userland will get 0 back)
+    return isr80h_commands[command];
 }
 
 void* isr80h_handler( int command, struct interrupt_frame* frame ) {
-    void* res = 0;
-
     // switch to the kernel page
     kernel_page();
 
     // copy interrupt_frame's registers into task (this allows us to switch tasks if we wanted to)
     task_current_save_state( frame );
 
-    // run the command
-    res = isr80h_handle_command( command, frame );
+    // get the command
+    void* res = isr80h_handle_command( command, frame );
 
     // switch back to task page
     task_page();

@@ -2,7 +2,9 @@
 #pragma once
 #include <stdint.h>
 
-// https://wiki.osdev.org/Interrupt_Descriptor_Table
+// function signature for 0x80 interrupt (kernel call from userland)
+struct interrupt_frame;
+typedef void*(*ISR80H_COMMAND)( struct interrupt_frame* frame );
 
 // interrupt descriptor
 struct idt_desc {
@@ -44,3 +46,5 @@ void idt_init();
 void enable_interrupts();
 void disable_interrupts();
 
+// register kernel commands that can be called from userspace
+void isr80h_register_command( int command, ISR80H_COMMAND function );
