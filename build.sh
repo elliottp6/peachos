@@ -17,6 +17,7 @@ mkdir -p build/fs
 mkdir -p build/fs/fat
 mkdir -p build/gdt
 mkdir -p build/task
+mkdir -p build/isr80h
 
 # build folder for programs
 mkdir -p build/programs

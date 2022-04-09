@@ -19,6 +19,7 @@
 #include "task/task.h"
 #include "task/process.h"
 #include "status.h"
+#include "isr80h/isr80h.h"
 
 uint16_t* video_mem = 0, terminal_row = 0, terminal_col = 0;
 
@@ -97,22 +98,26 @@ void kernel_main() {
     if( 0 == disk_search_and_init() ) print( "found FAT16 filesystem on disk @ index 0\n" );
     else print( "failed to bind disk to filesystem\n" );
 
-    // initialize IDT
+    // initialize IDT (interrupt descriptor table)
     idt_init();
-    print( "initialized IDT\n" );
+    print( "initialized IDT (interrupt descriptor table)\n" );
 
-    // setup the TSS
+    // setup the TSS (task state segment)
     memset( &tss, 0, sizeof( tss ) );
     tss.esp0 = 0x600000;
     tss.ss0 = KERNEL_DATA_SELECTOR;
     tss_load( 0x28 );
-    print( "loaded the TSS\n" );
+    print( "loaded the TSS (task state segment)\n" );
 
-    // initialize page tables
+    // enable paging
     kernel_chunk = paging_new_4gb( PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL );
     paging_switch( kernel_chunk );
     enable_paging();
     print( "initialized page tables & enabled paging\n" );
+
+    // register the kernel commands
+    isr80h_register_commands();
+    print( "registered kernel commands\n" );
 
     // load program
     struct process* process = NULL;

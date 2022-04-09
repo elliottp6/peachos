@@ -71,12 +71,10 @@ void idt_init() {
 
 void isr80h_register_command( int command, ISR80H_COMMAND function ) {
     // bounds check
-    if( command <= 0 || command >= PEACH_MAX_ISR80H_COMMANDS )
-        panic( "attempt to register a kernel command that is out-of-bounds\n" );
+    if( command < 0 || command >= PEACH_MAX_ISR80H_COMMANDS ) panic( "attempt to register a kernel command that is out-of-bounds\n" );
 
     // empty slot check
-    if( isr80h_commands[command] ) 
-        panic( "attempted to overwrite an existing command\n" );
+    if( isr80h_commands[command] )  panic( "attempted to overwrite an existing command\n" );
 
     // set slot
     isr80h_commands[command] = function;
@@ -84,7 +82,7 @@ void isr80h_register_command( int command, ISR80H_COMMAND function ) {
 
 void* isr80h_handle_command( int command, struct interrupt_frame* frame ) {
     // bounds check
-    if( command <= 0 || command >= PEACH_MAX_ISR80H_COMMANDS ) return NULL;
+    if( command < 0 || command >= PEACH_MAX_ISR80H_COMMANDS ) return NULL;
 
     // return command (note that NULL is OK, userland will get 0 back)
     return isr80h_commands[command];
