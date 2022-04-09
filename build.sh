@@ -38,9 +38,11 @@ make all && qemu-system-i386 -hda bin/os.bin
 # target remote | qemu-system-x86_64 -S -gdb stdio -hda os.bin
 # OR: target remote | qemu-system-i386 -S -gdb stdio -hda os.bin
 # layout asm
+# layout prev (when in layout asm, this will take you back to the C code layout)
 # stepi (next assembly instruction) OR next (next line of C code)
 # bt = backtrace
 # break kernel.c:55
+# break *0x400000 // break when ip points to this address, which is where user programs start from
 # print variable_name
 # c = continue
 # print $eax

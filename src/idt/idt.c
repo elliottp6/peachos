@@ -84,8 +84,12 @@ void* isr80h_handle_command( int command, struct interrupt_frame* frame ) {
     // bounds check
     if( command < 0 || command >= PEACH_MAX_ISR80H_COMMANDS ) return NULL;
 
-    // return command (note that NULL is OK, userland will get 0 back)
-    return isr80h_commands[command];
+    // get function pointer
+    ISR80H_COMMAND function = isr80h_commands[command];
+    if( !function ) return NULL;
+
+    // execute function & return result
+    return function( frame );
 }
 
 void* isr80h_handler( int command, struct interrupt_frame* frame ) {
