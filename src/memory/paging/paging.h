@@ -31,6 +31,7 @@ void enable_paging(); // warning: must create page tables & switch to a given di
 bool paging_is_aligned( void* address );
 
 // page mapping
+uint32_t paging_get( uint32_t* directory, void* virtual_address );
 int paging_set( uint32_t* directory, void* virtual_address, uint32_t value );
 int paging_map( struct paging_4gb_chunk* directory, void* virt, void* phys, int flags );
 int paging_map_range( struct paging_4gb_chunk* directory, void* virt, void* phys, int count, int flags );

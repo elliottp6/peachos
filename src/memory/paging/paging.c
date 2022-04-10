@@ -1,6 +1,7 @@
 #include "paging.h"
 #include "memory/heap/kheap.h"
 #include "status.h"
+#include "kernel.h"
 
 void paging_load_directory( uint32_t* directory );
 
@@ -100,4 +101,17 @@ int paging_set( uint32_t* directory, void* virtual_address, uint32_t value ) {
     uint32_t* table = (uint32_t*)(entry & 0xFFFFF000); // get just the address part of the entry (top 20 bits)
     table[table_index] = value;
     return res;
+}
+
+uint32_t paging_get( uint32_t* directory, void* virtual_address ) {
+    // get table indices
+    uint32_t directory_index = 0, table_index = 0;
+    if( paging_get_indexes( virtual_address, &directory_index, &table_index ) < 0 )
+        panic( "cannot get page table index for unaligned address\n" );
+
+    // get entry and get table pointer
+    uint32_t entry = directory[directory_index], *table = (uint32_t*)(entry & 0xFFFFF000);
+
+    // lookup address in table
+    return table[table_index];
 }
