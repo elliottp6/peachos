@@ -63,11 +63,10 @@ int paging_map( struct paging_4gb_chunk* directory, void* virt, void* phys, int 
     return paging_set( directory->directory_entry, virt, (uint32_t)phys | flags );
 }
 
-// TODO: bugfix in lecture 68: the '0 != (res = paging_map'... line was '0 == (res = paging_map'...
 int paging_map_range( struct paging_4gb_chunk* directory, void* virt, void* phys, int count, int flags ) {
      int res;
      for( int i = 0; i < count; i++ ) {
-         if( 0 != (res = paging_map( directory, virt, phys, flags )) ) return res;
+         if( (res = paging_map( directory, virt, phys, flags )) < 0 ) return res;
          virt += PAGING_PAGE_SIZE;
          phys += PAGING_PAGE_SIZE;
      }

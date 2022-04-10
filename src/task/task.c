@@ -133,6 +133,12 @@ int task_page() {
     return 0;
 }
 
+int task_page_task( struct task* task ) {
+    user_registers();
+    paging_switch( task->paging_directory );
+    return 0;
+}
+
 void task_run_first_ever_task() {
     // TODO: shouldn't this check for task_head?
     if( !current_task ) panic( "task_run_first_ever_task(): No current task exists!\n" );
@@ -159,4 +165,20 @@ struct task* task_new( struct process* process ) {
 out:
     if( ISERR( res ) ) { task_free( task ); return ERROR( res ); }
     return task;
+}
+
+// reads ith item from task's stack
+void* task_get_stack_item( struct task* task, int i ) {
+    // get virtual stack pointer
+    uint32_t* virtual_stack = (uint32_t*)task->registers.esp;
+
+    // switch to the task's page
+    task_page_task( task );
+
+    // read the value in task address space
+    void* value = (void*)virtual_stack[i];
+
+    // switch back to the kernel page
+    kernel_page();
+    return value;
 }

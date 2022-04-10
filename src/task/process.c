@@ -52,7 +52,9 @@ out:
 }
 
 // later on, add support for ELF files, etc. rather than just raw binaries (which are like DOS COM files)
-static int process_load_data( const char* filename, struct process* process ) { return process_load_binary( filename, process ); }
+static int process_load_data( const char* filename, struct process* process ) {
+    return process_load_binary( filename, process );
+}
 
 int process_map_binary( struct process* process ) {
     return paging_map_to(
@@ -63,7 +65,19 @@ int process_map_binary( struct process* process ) {
         PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE );
 }
 
-int process_map_memory( struct process* process ) { return process_map_binary( process ); }
+int process_map_memory( struct process* process ) {
+    // map the virtual address space for the entire binary (i.e. the program's static memory)
+    int res = process_map_binary( process );
+    if( res < 0 ) return res;
+
+    // map the virtual address space for the process' stack (otherwise, these will be unmapped, and it will cause a page fault when the process tries to push/pop from its stack)
+    return paging_map_to(
+        process->task->paging_directory,
+        (void*)PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, // note that 'end' comes BEFORE start, since stack grows from higher addresses to lower ones
+        process->stack,
+        paging_align_address( process->stack + PEACHOS_USER_PROGRAM_STACK_SIZE ),
+        PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE );
+}
 
 int process_get_free_slot() {
     for( int i = 0; i < PEACHOS_MAX_PROCESSES; i++ ) if( NULL == processes[i] ) return i;
