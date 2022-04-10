@@ -5,6 +5,8 @@
 #include "memory/heap/kheap.h"
 #include "process.h"
 #include "idt/idt.h"
+#include "memory/paging/paging.h"
+#include "string/string.h"
 
 // data
 struct task* current_task = NULL; // current task that's running
@@ -76,6 +78,44 @@ void task_save_state( struct task* task, struct interrupt_frame* frame ) {
     task->registers.edi = frame->edi;
     task->registers.edx = frame->edx;
     task->registers.esi = frame->esi;
+}
+
+// the 'virtual' address is in userspace, so we cannot directly access from kernelland
+int copy_string_from_task( struct task* task, void* virtual, void* physical, int max ) {
+    // allocate a page-aligned buffer that is < PAGE_SIZE
+    if( max >= PAGING_PAGE_SIZE ) return -EINVARG;
+    char* tmp = kzalloc( max );
+    if( NULL == tmp ) return -ENOMEM;
+
+    // backup the task page, because it may point to physical memory that the process is using
+    // (process is frozen, so it won't need this page for now)
+    uint32_t *task_directory = task->paging_directory->directory_entry,
+             old_entry = paging_get( task_directory, tmp );
+
+    // point virtual address 'tmp' to physical (kernel) address 'tmp'
+    // TODO: why do we need 'tmp'? can't we just map somewhere directly to 'physical' and do the copy in user space?
+    paging_map( task->paging_directory, tmp, tmp, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL );
+    
+    // switch to task's address space (note that 'tmp' is being mapped into process space)
+    paging_switch( task->paging_directory );
+
+    // copy into tmp from virtual TODO: what if 'virtual' is located in 'tmp'?
+    strncpy( tmp, virtual, max );
+
+    // switch back to the kernel address space
+    kernel_page();
+    
+    // restore the task's page
+    int res = 0;
+    if( paging_set( task_directory, tmp, old_entry ) < 0 ) { res = -EIO; goto out; }
+
+    // copy from 'tmp' into the destination
+    strncpy( physical, tmp, max );
+
+    // deallocate the 'tmp' memory
+out:
+    kfree( tmp );
+    return res;
 }
 
 void task_current_save_state( struct interrupt_frame* frame ) {
