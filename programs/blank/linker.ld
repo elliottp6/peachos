@@ -9,6 +9,11 @@ SECTIONS
         *(.text)
     }
 
+    .asm : ALIGN(4096) /* unaligned assembly code goes here */
+    {
+        *(.asm)
+    }
+
     .rodata : ALIGN(4096) /* readonly data section */
     {
         *(.rodata)
@@ -23,10 +28,5 @@ SECTIONS
     {
         *(COMMON)
         *(.bss)
-    }
-
-    .asm : ALIGN(4096) /* unaligned assembly code goes here */
-    {
-        *(.asm)
     }
 }
