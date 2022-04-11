@@ -18,6 +18,7 @@ mkdir -p build/fs/fat
 mkdir -p build/gdt
 mkdir -p build/task
 mkdir -p build/isr80h
+mkdir -p build/keyboard
 
 # build folder for programs
 mkdir -p build/programs

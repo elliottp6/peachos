@@ -35,3 +35,6 @@
 #define PEACHOS_MAX_PROGRAM_ALLOCATIONS 1024
 #define PEACHOS_MAX_PROCESSES 12
 #define PEACH_MAX_ISR80H_COMMANDS 1024 // kernel calls
+
+// keyboard (virtual layer)
+#define PEACHOS_KEYBOARD_BUFFER_SIZE 1024
