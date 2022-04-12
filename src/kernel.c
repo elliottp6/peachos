@@ -71,6 +71,8 @@ struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
     {.base = (uint32_t)&tss, .limit = sizeof( tss ), .type = 0xE9} // tss segment
 };
 
+void pic_timer_callback( struct interrupt_frame* frame ) { print( "tick\n" ); }
+
 void kernel_main() {
     // initialize terminal
     terminal_initialize();
@@ -123,6 +125,9 @@ void kernel_main() {
     // initialize the keyboards
     keyboard_init();
     print( "initialized keyboards\n" );
+
+    // register some interrupt callbacks
+    idt_register_interrupt_callback( 0x20, pic_timer_callback ); // timer interrupt
 
     // load program
     struct process* process = NULL;

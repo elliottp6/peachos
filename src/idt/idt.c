@@ -4,13 +4,17 @@
 #include "memory/memory.h"
 #include "task/task.h"
 #include "io/io.h"
+#include "status.h"
 
 // interrupt descriptor table
 struct idt_desc idt_descriptors[PEACHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
-// pointers to assembly routines which handle interrupts
+// pointers to assembly routines which are called by interrupts, and pass them along to our 'interrupt_handler' C function
 extern void* interrupt_pointer_table[PEACHOS_TOTAL_INTERRUPTS];
+
+// our 'interrupt_handler' C function calls these to ultimately resolve the interrupt
+static INTERRUPT_CALLBACK_FUNCTION interrupt_callbacks[PEACHOS_TOTAL_INTERRUPTS];
 
 // function pointers for 0x80 interrupt (kernel call from userland)
 static ISR80H_COMMAND isr80h_commands[PEACH_MAX_ISR80H_COMMANDS];
@@ -41,7 +45,18 @@ void no_interrupt_handler() {
 }
 
 void interrupt_handler( int interrupt, struct interrupt_frame* frame ) {
-    // TODO: handle interrupts
+    // switch from user page to kernel page
+    kernel_page();
+
+    // lookup callback function
+    INTERRUPT_CALLBACK_FUNCTION callback = interrupt_callbacks[interrupt];
+    if( callback ) {
+        task_current_save_state( frame );
+        callback( frame );
+    }
+
+    // switch back to userland page
+    task_page();
 
     // send acknowledgement that interrupt was handled
     outb( 0x20, 0x20 );
@@ -65,6 +80,15 @@ void idt_init() {
 
     // load the interrupt descriptor table
     idt_load( &idtr_descriptor );
+}
+
+int idt_register_interrupt_callback( int interrupt, INTERRUPT_CALLBACK_FUNCTION callback ) {
+    // bounds check
+    if( interrupt < 0 || interrupt >= PEACHOS_TOTAL_INTERRUPTS ) return -EINVARG;
+
+    // set the callback
+    interrupt_callbacks[interrupt] = callback;
+    return 0;
 }
 
 void isr80h_register_command( int command, ISR80H_COMMAND function ) {
