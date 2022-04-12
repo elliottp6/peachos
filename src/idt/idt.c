@@ -9,6 +9,9 @@
 struct idt_desc idt_descriptors[PEACHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
+// pointers to assembly routines which handle interrupts
+extern void* interrupt_pointer_table[PEACHOS_TOTAL_INTERRUPTS];
+
 // function pointers for 0x80 interrupt (kernel call from userland)
 static ISR80H_COMMAND isr80h_commands[PEACH_MAX_ISR80H_COMMANDS];
 
@@ -32,17 +35,15 @@ void idt_zero() {
     print( "divide by zero error\n" );
 }
 
-void int21h_handler() {
-    // do something to handle the interrupt
-    // TODO: we must actually read the key in order to recieve more keyboard interrupts
-    print( "keyboard pressed!\n" );
-
+void no_interrupt_handler() {
     // must send an acknowledgement that the interrupt was handled (or else, processor will stop sending interrupts)
     outb( 0x20, 0x20 );
 }
 
-void no_interrupt_handler() {
-    // must send an acknowledgement that the interrupt was handled (or else, processor will stop sending interrupts)
+void interrupt_handler( int interrupt, struct interrupt_frame* frame ) {
+    // TODO: handle interrupts
+
+    // send acknowledgement that interrupt was handled
     outb( 0x20, 0x20 );
 }
 
@@ -52,15 +53,12 @@ void idt_init() {
     idtr_descriptor.limit = sizeof( idt_descriptors ) - 1;
     idtr_descriptor.base = (uint32_t)idt_descriptors;
 
-    // set each interrupt to 'no_interrupt' function
-    // you MUST do this, or else the CPU will reset itself after trying to call a null interrupt
-    for( int i = 0; i < PEACHOS_TOTAL_INTERRUPTS; i++ ) idt_set( i, no_interrupt );
+    // set each interrupt to point to the assembly routine we defined for it
+    for( int i = 0; i < PEACHOS_TOTAL_INTERRUPTS; i++ )
+        idt_set( i, interrupt_pointer_table[i] );
 
     // set interrupt 0 (divide by zero exception)
     idt_set( 0, idt_zero );
-
-    // set interrupt 0x21 (keyboard input)
-    idt_set( 0x21, int21h );
 
     // kernel call from userland
     idt_set( 0x80, isr80h_wrapper );
