@@ -4,12 +4,9 @@
 #include "task/process.h"
 #include "task/task.h"
 #include <stddef.h>
+#include "classic.h"
 
 static struct keyboard *keyboard_list_head = NULL, *keyboard_list_last = NULL;
-
-void keyboard_init() {
-    // initialize all of the keyboard drivers
-}
 
 // insert & initialize the keyboard
 int keyboard_insert( struct keyboard* keyboard ) {
@@ -26,6 +23,11 @@ int keyboard_insert( struct keyboard* keyboard ) {
 
     // initialize the keyboard
     return keyboard->init();
+}
+
+// initialize all of the keyboard drivers
+void keyboard_init() {
+    keyboard_insert( classic_init() );
 }
 
 static int keyboard_get_tail_index( struct process* process ) {
