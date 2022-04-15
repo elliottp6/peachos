@@ -46,6 +46,9 @@ void keyboard_backspace( struct process* process ) {
 
 // pushing a key inputs to just the process which has the FOCUS (process_current)
 void keyboard_push( char c ) {
+    // don't allow zero to be pushed (or else buffer would be corrupted)
+    if( !c ) return;
+
     // get the current process
     struct process* process = process_current();
     if( !process ) return;

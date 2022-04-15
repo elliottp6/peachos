@@ -5,21 +5,34 @@ section .asm
 global _start
 
 _start:
-    ; call kernel add command
-    ;mov eax, 0 ; tells kernel to run command #0 (which is our 'sum' command)
-    ;push 20 ; 1st argument
-    ;push 30 ; 2nd argument
-    ;int 0x80 ; call interrupt 0x80
-    ;add esp, 8 ; pop arguments
-    
-    ; call kernel print command
-    mov eax, 1 ; command #1
-    push message ; 1st argument
-    int 0x80
-    add esp, 4 ; pop arguments
+    ; print message1
+    mov eax, message1
+    call print_pop
+
+    ; wait for a keypress
+    call getkey
+
+    ; print message2
+    mov eax, message2
+    call print_pop
 
     ; infinite loop
     jmp $
 
+print_pop:
+    push eax ; 1st argument is passed in eax
+    mov eax, 1 ; kernel print command
+    int 0x80
+    add esp, 4 ; pop argument
+    ret
+
+getkey:
+    mov eax, 2 ; kernel getkey command
+    int 0x80
+    cmp eax, 0 ; compare the return value with zero
+    je getkey ; if it's zero, then do a busy wait (i.e. check again)
+    ret
+
 section .data
-message: db 'Hello world from user process!', 10, 0
+message1: db 'User Process: press any key to continue.', 10, 0
+message2: db 'User Process: thank you for pushing a key!', 10, 0
