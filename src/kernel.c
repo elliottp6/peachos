@@ -30,8 +30,24 @@ void terminal_putchar( int x, int y, char c, char color ) {
     video_mem[(y * VGA_WIDTH) + x] = terminal_make_char( c, color );
 }
 
+// TODO: this was fixed up from lecture 90, whose implementation did not handle backspaces properly
+void terminal_backspace() {
+    if( 0 == terminal_col ) {
+        if( 0 == terminal_row ) return;
+        terminal_row--;
+        terminal_col = VGA_WIDTH;
+    }
+    terminal_putchar( --terminal_col, terminal_row, ' ', 15 );
+}
+
 void terminal_writechar( char c, char color ) {
+    // handle newline 
     if( '\n' == c ) { terminal_row++; terminal_col = 0; return; }
+
+    // handle backspace
+    if( 8 == c ) { terminal_backspace(); return; }
+
+    // handle regular character
     terminal_putchar( terminal_col, terminal_row, c, color );
     terminal_col++;
     if( terminal_col >= VGA_WIDTH ) { terminal_col = 0; terminal_row++; }
