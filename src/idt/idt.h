@@ -7,7 +7,6 @@ struct interrupt_frame;
 typedef void*(*ISR80H_COMMAND)( struct interrupt_frame* frame );
 
 // function signature for C function which in invoked to handle interrupts
-// TODO: this is supposed to take an interrupt frame. also, shouldn't we return more than void?
 typedef void(*INTERRUPT_CALLBACK_FUNCTION)();
 
 // interrupt descriptor

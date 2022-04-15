@@ -71,7 +71,7 @@ struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
     {.base = (uint32_t)&tss, .limit = sizeof( tss ), .type = 0xE9} // tss segment
 };
 
-void pic_timer_callback( struct interrupt_frame* frame ) { print( "tick\n" ); }
+void pic_timer_callback() { print( "tick\n" ); }
 
 void kernel_main() {
     // initialize terminal
@@ -126,7 +126,7 @@ void kernel_main() {
     keyboard_init();
     print( "initialized keyboards\n" );
 
-    // register some interrupt callbacks
+    // test: register some interrupt callbacks
     // note: disabled for now: idt_register_interrupt_callback( 0x20, pic_timer_callback ); // timer interrupt
 
     // load program
@@ -134,9 +134,9 @@ void kernel_main() {
     int res = process_load_switch( "0:/blank.bin", &process );
     if( PEACHOS_ALL_OK != res ) panic( "failed to load blank.bin\n" ); else print( "Loaded blank.bin OK\n" );
 
-    // push character to current process' keyboard buffer
+    // test: push character to current process' keyboard buffer
     // (note: we cannot pop, because there's no task to pop yet)
-    keyboard_push( 'A' );
+    // keyboard_push( 'A' );
 
     // run first task
     task_run_first_ever_task();

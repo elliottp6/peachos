@@ -1,11 +1,15 @@
 #include "classic.h"
 #include "keyboard.h"
 #include "io/io.h"
+#include "idt/idt.h"
+#include "task/task.h"
+#include "kernel.h"
 #include <stdint.h>
 #include <stddef.h>
 
-// forward delcaration
+// forward delcarations
 int classic_keyboard_init();
+void classic_keyboard_handle_interrupt();
 
 // lookup table: scancode index => ascii value (https://wiki.osdev.org/PS/2_Keyboard, section "Scan Code Set 1")
 static uint8_t keyboard_scan_set_one[] = {
@@ -31,12 +35,11 @@ struct keyboard classic_keyboard = {
 
 // functions
 int classic_keyboard_init() {
-    // PS/2 port controller
-    // PS2_PORT (0x64) is the "command register" for the PS/2 port controller
-    // PS2_COMMAND_ENABLE_FIRST_PORT (0xAE) command Enables the first PS/2 port
+    // register the interrupt callback for keypresses
+    idt_register_interrupt_callback( ISR_KEYBOARD_INTERRUPT, classic_keyboard_handle_interrupt );
+    
+    // enable the 1st PS/2 port
     outb( PS2_PORT, PS2_COMMAND_ENABLE_FIRST_PORT );
-
-    // done
     return 0;
 }
 
@@ -50,7 +53,27 @@ uint8_t classic_keyboard_scancode_to_char( uint8_t scancode ) {
 }
 
 void classic_keyboard_handle_interrupt() {
-    // TODO
+    // switch to kernel page
+    kernel_page();
+    
+    // read from keyboard port
+    uint8_t scancode = insb( KEYBOARD_INPUT_PORT );
+
+    // eat extra bytes that get sent after the first read
+    insb( KEYBOARD_INPUT_PORT );
+
+    // if key released: ignore it
+    if( CLASSIC_KEYBOARD_KEY_RELEASED & scancode ) return;
+
+    // convert scancode to character
+    uint8_t c = classic_keyboard_scancode_to_char( scancode );
+    if( 0 == c ) return; // no character
+
+    // push character into the current process' keyboard buffer
+    keyboard_push( c );
+
+    // switch back to the task's page
+    task_page();
 }
 
 struct keyboard* classic_init() { return &classic_keyboard; }

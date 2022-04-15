@@ -40,10 +40,13 @@ make all && qemu-system-i386 -hda bin/os.bin
 # OR: target remote | qemu-system-i386 -S -gdb stdio -hda os.bin
 # layout asm
 # layout prev (when in layout asm, this will take you back to the C code layout)
+# note: when using 'next' through C code, if we enter assembly instruction, you cannot 'next' over it, b/c debugger gets confused
+#   instead, you must 'layout asm' and then 'stepi' your way out until it 'ret's, before doing a 'layout prev' to get back to C land
 # stepi (next assembly instruction) OR next (next line of C code)
 # bt = backtrace
 # break kernel.c:55
 # break *0x400000 // break when ip points to this address, which is where user programs start from
+# break function_name
 # print variable_name
 # c = continue
 # print $eax
