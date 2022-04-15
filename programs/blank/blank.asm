@@ -10,8 +10,20 @@ _start:
     call print_pop
 
     ; wait for a keypress
+next_key:
+    ; getkey, and goto 'done' if it's 'enter'
     call getkey
+    cmp eax, 10 ; TODO: this isn't working, so we want need a different value
+    je done
 
+    ; write character
+    push eax ; save the key onto the stack
+    mov eax, 3 ; execute command #3 (putchar)
+    int 0x80
+    pop eax ; pop the key
+    jmp next_key
+
+done:
     ; print message2
     mov eax, message2
     call print_pop
@@ -34,5 +46,5 @@ getkey:
     ret
 
 section .data
-message1: db 'User Process: press any key to continue.', 10, 0
-message2: db 'User Process: thank you for pushing a key!', 10, 0
+message1: db 'User Process: press any key to continue: ', 0
+message2: db 10, 'User Process: thank you for pushing a key!', 10, 0

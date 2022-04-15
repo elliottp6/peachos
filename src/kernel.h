@@ -11,3 +11,4 @@ void kernel_page(); // switch to kernel segment and page directory
 void kernel_registers();
 void print( const char* str );
 void panic( const char* msg );
+void terminal_writechar( char c, char color );
