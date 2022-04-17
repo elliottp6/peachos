@@ -35,23 +35,25 @@
 #define SHT_LOUSER 14
 #define SHT_HIUSER 15
 
-#define ET_NONE 0
-#define ET_REL 1
-#define ET_EXEC 2
-#define ET_DYN 3
-#define ET_CORE 4
+// type of object file
+#define ET_NONE 0 // type not specified
+#define ET_REL 1 // relocatable
+#define ET_EXEC 2 // executable
+#define ET_DYN 3 // dynamic link library
+#define ET_CORE 4 // core file
 
-#define EI_NIDENT 16 // number of bytes used to mark this file as an 'ELF' type
-#define EI_CLASS 4
-#define EI_DATA 5
+#define EI_NIDENT 16 // number of identity bytes used to define this as ELF and its class (i.e. subtype)
+#define EI_CLASS 4 // index of 'class' byte within the identity bytes
+#define EI_DATA 5 // index of 'data' byte within identity bytes
 
 #define ELFCLASSNONE 0
 #define ELFCLASS32 1
 #define ELFCLASS64 2
 
-#define ELFDATANONE 0
-#define ELFDATA2LSB 1
-#define ELFDATA2MSB 2
+// data encoding
+#define ELFDATANONE 0 // no encoding specified
+#define ELFDATA2LSB 1 // little endian encoding (intel's default)
+#define ELFDATA2MSB 2 // big endian encoding (we won't support this, but we could in theory do a conversion or something, right?)
 
 #define SHN_UNDEF 0
 
@@ -64,7 +66,7 @@ typedef int32_t elf32_off;
 
 // elf header
 struct elf_header {
-    unsigned char e_ident[EI_NIDENT]; // marks this file as an ELF file type
+    unsigned char e_ident[EI_NIDENT]; // marks this file as an ELF file type, along with it's class (i.e. subtype)
     elf32_half e_type; // type of object file (relocatable, executable, etc.)
     elf32_half e_machine; // architecture (EM_386 is what we want)
     elf32_word e_version; // object file version
@@ -98,7 +100,7 @@ struct elf32_shdr {
     elf32_word sh_type;
     elf32_word sh_flags;
     elf32_addr sh_addr;
-    elf32_off sh_offset;
+    elf32_off sh_offset; // 
     elf32_word sh_size;
     elf32_word sh_link;
     elf32_word sh_info;
@@ -124,3 +126,7 @@ struct elf32_sym {
     unsigned char st_other;
     elf32_half st_shndx;
 } __attribute__((packed));
+
+// functions
+uint32_t elf_get_entry( struct elf_header* elf_header );
+void* elf_get_entry_ptr( struct elf_header* elf_header );
