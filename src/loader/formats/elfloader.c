@@ -9,10 +9,10 @@
 #include "kernel.h"
 #include "config.h"
 
+// -- CHECKS --
+
 // elf signature
 const char* elf_signature = {0x7f, 'E', 'L', 'F'};
-
-// -- CHECKS --
 
 // checks for valid ELF signature
 static bool elf_valid_signature( void* buffer ) {
@@ -54,17 +54,17 @@ void* elf_memory( struct elf_file* file ) { return file->elf_memory; }
 // elf header
 struct elf_header* elf_header( struct elf_file* file ) { return file->elf_memory; }
 
-// elf section header table
+// elf section header table TODO: this style of accessing offsets is memory unsafe (b/c who knows what e_shoff could be set to!)
 struct elf32_shdr* elf_sheader( struct elf_header* header ) {
     return (struct elf32_shdr*)( (int)header + header->e_shoff );
 }
 
-// elf program header table (optional)
+// elf program header table (optional) TODO: this is also memory unsafe
 struct elf32_phdr* elf_pheader(struct elf_header* header) {
     return 0 != header->e_phoff ? (struct elf32_phdr*)( (int)header + header->e_phoff ) : 0;
 }
 
-// elf header (program or section) @ index
+// elf header (program or section) @ index TODO: this is also memory unsafe, b/c we could easily read past the buffer
 struct elf32_phdr* elf_program_header( struct elf_header* header, int index ) { return &elf_pheader( header )[index]; }
 struct elf32_shdr* elf_section_header( struct elf_header* header, int index ) { return &elf_sheader( header )[index]; }
 
@@ -78,3 +78,69 @@ void* elf_virtual_base( struct elf_file* file ) { return file->virtual_base_addr
 void* elf_virtual_end( struct elf_file* file ) { return file->virtual_end_address; }
 void* elf_phys_base( struct elf_file* file ) { return file->physical_base_address; }
 void* elf_phys_end( struct elf_file* file ) { return file->physical_end_address; }
+
+// -- LOADING --
+
+// TODO: implement elf_process_pheaders
+
+// processes an in-memory elf file
+int elf_process_loaded( struct elf_file* elf_file ) {
+    // get header
+    struct elf_header* header = elf_header( elf_file );
+
+    // validating that we support loading this type of ELF file
+    int res = elf_validate_loaded( header );
+    if( res < 0 ) return res;
+
+    // process the program headers
+    if( (res = elf_process_pheaders( elf_file )) < 0 ) goto out;
+
+    // TODO: continue
+
+out:
+    return res;
+}
+
+// loads an elf file
+int elf_load( const char* filename, struct elf_file** file_out ) {
+    // open the file
+    int fd = fopen( filename, "r" );
+    if( fd < 0 ) return fd;
+    
+    // get file stats
+    int res;
+    struct file_stat stat;
+    if( (res = fstat( fd, &stat )) < 0 ) goto out;
+
+    // allocate space for the elf_file structure
+    struct elf_file* elf_file = kzalloc( sizeof( struct elf_file ) );
+    if( NULL == elf_file ) { res = -ENOMEM; goto out; }
+
+    // allocate enough heap memory for the entire file
+    elf_file->elf_memory = kzalloc( stat.filesize );
+    if( NULL == elf_file->elf_memory ) { res = -ENOMEM; goto out; }
+
+    // read the file into memory
+    if( (res = fread( elf_file->elf_memory, stat.filesize, 1, fd )) < 0 ) goto out;
+
+    // process the loaded ELF file
+    if( (res = elf_process_loaded( elf_file )) < 0 ) goto out;
+
+    // set output
+    *file_out = elf_file;
+
+    // done
+out:
+    // close file
+    fclose( fd );
+
+    // handle failure
+    if( res < 0 ) {
+        // TODO: free the elf_file's memory (elf_file->elf_memory)
+        kfree( elf_file );
+        return res;
+    }
+
+    // success
+    return 0;
+}
