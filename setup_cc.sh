@@ -1,3 +1,6 @@
+# before we install the cross-compiler, go ahead and install the 'dumpelf' tool (you can also use readelf, which is built in)
+sudo apt install pax-utils
+
 # https://wiki.osdev.org/GCC_Cross-Compiler
 
 # install dependencies (note: libcloog-isl-dev omitted since it's missing & optional)

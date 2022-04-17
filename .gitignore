@@ -4,3 +4,6 @@
 # object files
 *.o
 
+# elf files
+*.elf
+
