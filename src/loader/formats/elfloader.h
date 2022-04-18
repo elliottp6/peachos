@@ -4,6 +4,7 @@
 #include "elf.h"
 #include "config.h"
 
+// types
 struct elf_file {
     char filename[PEACHOS_MAX_PATH];
     int in_memory_size; // how large the elf file is when loaded into memory
@@ -13,3 +14,7 @@ struct elf_file {
     void* physical_base_address;
     void* physical_end_address;
 };
+
+// functions
+int elf_load( const char* filename, struct elf_file** file_out );
+void elf_close( struct elf_file* file );

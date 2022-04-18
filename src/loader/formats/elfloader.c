@@ -12,7 +12,7 @@
 // -- CHECKS --
 
 // elf signature
-const char* elf_signature = {0x7f, 'E', 'L', 'F'};
+const char elf_signature[] = {0x7F, 'E', 'L', 'F'};
 
 // checks for valid ELF signature
 static bool elf_valid_signature( void* buffer ) {
@@ -81,7 +81,46 @@ void* elf_phys_end( struct elf_file* file ) { return file->physical_end_address;
 
 // -- LOADING --
 
-// TODO: implement elf_process_pheaders
+// process a program header to update the elf base and end addresses to encompass this segment
+int elf_process_phdr_pt_load( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
+    // update the ELF's base (start) address (minimum of all program header base addresses)
+    if( NULL == elf_file->virtual_base_address || (void*)program_header->p_vaddr < elf_file->virtual_base_address ) {
+        elf_file->virtual_base_address = (void*)program_header->p_vaddr;
+        elf_file->physical_base_address = elf_memory( elf_file ) + program_header->p_offset;
+    }
+
+    // update the ELF's end address (maximum of all program header end addresses)
+    uint32_t end_virtual_address = program_header->p_vaddr + program_header->p_filesz;
+    if( NULL == elf_file->virtual_end_address || (void*)end_virtual_address > elf_file->virtual_end_address ) {
+        elf_file->virtual_end_address = (void*)end_virtual_address;
+        elf_file->physical_end_address = elf_memory( elf_file ) + program_header->p_offset + program_header->p_filesz;
+    }
+
+    // done
+    return 0;
+}
+
+int elf_process_pheader( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
+    switch( program_header->p_type ) {
+        case PT_LOAD: return elf_process_phdr_pt_load( elf_file, program_header );
+    }
+
+    // done
+    return 0;
+}
+
+// process the program headers
+int elf_process_pheaders( struct elf_file* elf_file ) {
+    // get header
+    struct elf_header* header = elf_header( elf_file );
+
+    // process all the program headers
+    for( int i = 0, res; i < header->e_phnum; i++ ) {
+        struct elf32_phdr* program_header = elf_program_header( header, i );
+        if( (res = elf_process_pheader( elf_file, program_header )) < 0 ) return res;
+    }
+    return 0;    
+}
 
 // processes an in-memory elf file
 int elf_process_loaded( struct elf_file* elf_file ) {
@@ -131,16 +170,13 @@ int elf_load( const char* filename, struct elf_file** file_out ) {
 
     // done
 out:
-    // close file
     fclose( fd );
-
-    // handle failure
-    if( res < 0 ) {
-        // TODO: free the elf_file's memory (elf_file->elf_memory)
-        kfree( elf_file );
-        return res;
-    }
-
-    // success
+    if( res < 0 ) { elf_close( elf_file ); return res; } // TODO: bugfix: lecture 97 did not close the ELF file on error
     return 0;
+}
+
+void elf_close( struct elf_file* file ) {
+    if( !file ) return;
+    if( file->elf_memory ) kfree( file->elf_memory );
+    kfree( file );
 }

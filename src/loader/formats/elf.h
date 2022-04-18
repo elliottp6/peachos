@@ -10,8 +10,9 @@
 #define PF_W 0x02
 #define PF_R 0x04
 
+// segment types
 #define PT_NULL 0
-#define PT_LOAD 1
+#define PT_LOAD 1 // loadable segment
 #define PT_DYNAMIC 2
 #define PT_INTERP 3
 #define PT_NOTE 4
