@@ -171,7 +171,7 @@ int elf_load( const char* filename, struct elf_file** file_out ) {
     // done
 out:
     fclose( fd );
-    if( res < 0 ) { elf_close( elf_file ); return res; } // TODO: bugfix: lecture 97 did not close the ELF file on error
+    if( res < 0 ) { elf_close( elf_file ); return res; } // TODO: bugfix: lecture 96 did not close the ELF file on error
     return 0;
 }
 

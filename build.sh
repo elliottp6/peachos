@@ -19,6 +19,7 @@ mkdir -p build/gdt
 mkdir -p build/task
 mkdir -p build/isr80h
 mkdir -p build/keyboard
+mkdir -p build/loader/formats
 
 # build folder for programs
 mkdir -p build/programs
