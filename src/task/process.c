@@ -8,6 +8,7 @@
 #include "string/string.h"
 #include "kernel.h"
 #include "memory/paging/paging.h"
+#include "loader/formats/elfloader.h"
 
 // process storage
 struct process* current_process = 0;
@@ -45,6 +46,7 @@ static int process_load_binary( const char* filename, struct process* process ) 
     if( 1 != fread( program_data_ptr, stat.filesize, 1, fd ) ) { res = -EIO; goto out; }
 
     // setup process
+    process->filetype = PROCESS_FILETYPE_BINARY;
     process->ptr = program_data_ptr;
     process->size = stat.filesize;
 
@@ -55,9 +57,26 @@ out:
     return res;
 }
 
+static int process_load_elf( const char* filename, struct process* process ) {
+    // load elf file
+    struct elf_file* elf_file = NULL;
+    int res = elf_load( filename, &elf_file );
+    if( res < 0 ) return res;
+
+    // set the process attributes
+    process->filetype = PROCESS_FILETYPE_ELF;
+    process->elf_file = elf_file;
+    return 0;
+}
+
 // later on, add support for ELF files, etc. rather than just raw binaries (which are like DOS COM files)
 static int process_load_data( const char* filename, struct process* process ) {
-    return process_load_binary( filename, process );
+    // try to load 'filename' as ELF
+    int res = process_load_elf( filename, process );
+
+    // if it was not ELF format, then load as raw binary
+    if( -EINFORMAT == res ) return process_load_binary( filename, process );
+    return res;
 }
 
 int process_map_binary( struct process* process ) {
@@ -69,9 +88,24 @@ int process_map_binary( struct process* process ) {
         PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE );
 }
 
+static int process_map_elf( struct process* process ) {
+    struct elf_file* elf_file = process->elf_file;
+    return paging_map_to(
+        process->task->paging_directory,
+        paging_align_to_lower_page( elf_virtual_base( elf_file ) ),
+        elf_physical_base( elf_file ), // we know this is already aligned b/c kheap only allocate on 4K boundaries
+        paging_align_address( elf_physical_end( elf_file ) ), // align to upper page
+        PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE ); // warning: entire space is writeable
+}
+
 int process_map_memory( struct process* process ) {
-    // map the virtual address space for the entire binary (i.e. the program's static memory)
-    int res = process_map_binary( process );
+    // map the virtual address space for the process' static memory
+    int res = 0;
+    switch( process->filetype ) {
+        case PROCESS_FILETYPE_ELF: res = process_map_elf( process ); break;
+        case PROCESS_FILETYPE_BINARY: res = process_map_binary( process ); break;
+        default: panic( "process_map_memory: unsupported process filetype\n" ); return -EINVARG;
+    }
     if( res < 0 ) return res;
 
     // map the virtual address space for the process' stack (otherwise, these will be unmapped, and it will cause a page fault when the process tries to push/pop from its stack)

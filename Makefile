@@ -12,6 +12,7 @@ all: bin/boot.bin bin/kernel.bin user_programs
 	sudo mount -t vfat bin/os.bin /mnt/d
 	sudo cp hello.txt /mnt/d
 	sudo cp bin/blank.bin /mnt/d
+	sudo cp bin/blank.elf /mnt/d
 	sudo umount /mnt/d
 
 # link kernel (note that kernel.asm MUST be the first object file, so that we get the entry point in the right place)

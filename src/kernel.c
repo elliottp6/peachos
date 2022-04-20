@@ -147,8 +147,8 @@ void kernel_main() {
 
     // load program
     struct process* process = NULL;
-    int res = process_load_switch( "0:/blank.bin", &process );
-    if( PEACHOS_ALL_OK != res ) panic( "failed to load blank.bin\n" ); else print( "Loaded blank.bin OK\n" );
+    int res = process_load_switch( "0:/blank.elf", &process );
+    if( PEACHOS_ALL_OK != res ) panic( "failed to load blank.elf\n" ); else print( "Loaded blank.elf OK\n" );
 
     // test: push character to current process' keyboard buffer
     // (note: we cannot pop, because there's no task to pop yet)

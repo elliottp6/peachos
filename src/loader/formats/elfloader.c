@@ -76,8 +76,8 @@ char* elf_str_table( struct elf_header* header ) {
 
 void* elf_virtual_base( struct elf_file* file ) { return file->virtual_base_address; }
 void* elf_virtual_end( struct elf_file* file ) { return file->virtual_end_address; }
-void* elf_phys_base( struct elf_file* file ) { return file->physical_base_address; }
-void* elf_phys_end( struct elf_file* file ) { return file->physical_end_address; }
+void* elf_physical_base( struct elf_file* file ) { return file->physical_base_address; }
+void* elf_physical_end( struct elf_file* file ) { return file->physical_end_address; }
 
 // -- LOADING --
 
