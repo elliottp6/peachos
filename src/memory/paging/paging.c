@@ -49,10 +49,18 @@ int paging_get_indexes( void* virtual_address, uint32_t* directory_index_out, ui
     return 0;
 }
 
+// TODO: rename to 'ceiling'
 void* paging_align_address( void* address ) { // aligns address by rounding up
     uint32_t remainder = (uint32_t)address % PAGING_PAGE_SIZE;
     if( remainder ) return (void*)((uint32_t)address + PAGING_PAGE_SIZE - remainder);
     return address;
+}
+
+// TODO: rename to 'floor'
+void* paging_align_to_lower_page( void* address ) { // aligns address by rounding down
+    uint32_t addr = (uint32_t)address;
+    addr-= addr % PAGING_PAGE_SIZE;
+    return (void*)addr;
 }
 
 int paging_map( struct paging_4gb_chunk* directory, void* virt, void* phys, int flags ) {
