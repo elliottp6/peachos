@@ -44,7 +44,7 @@ int elf_validate_loaded( struct elf_header* header ) {
     return (elf_valid_signature( header ) &&
             elf_valid_class( header ) &&
             elf_valid_encoding( header ) &&
-            elf_has_program_header( header )) ? PEACHOS_ALL_OK : -EINVARG;
+            elf_has_program_header( header )) ? PEACHOS_ALL_OK : -EINFORMAT;
 }
 
 // -- PROPERTIES --
@@ -103,10 +103,8 @@ int elf_process_phdr_pt_load( struct elf_file* elf_file, struct elf32_phdr* prog
 int elf_process_pheader( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
     switch( program_header->p_type ) {
         case PT_LOAD: return elf_process_phdr_pt_load( elf_file, program_header );
+        default: return 0;
     }
-
-    // done
-    return 0;
 }
 
 // process the program headers

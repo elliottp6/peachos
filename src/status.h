@@ -9,3 +9,4 @@
 #define ERDONLY 6 // filesystem is read-only
 #define EUNIMP 7 // not implemented
 #define EISTKN 8 // is taken
+#define EINFORMAT 9 // invalid format
