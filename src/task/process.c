@@ -84,18 +84,37 @@ int process_map_binary( struct process* process ) {
         process->task->paging_directory,
         (void*)PEACHOS_PROGRAM_VIRTUAL_ADDRESS,
         process->ptr,
-        paging_align_address( process->ptr + process->size ),
+        paging_align_ceiling( process->ptr + process->size ),
         PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE );
 }
 
 static int process_map_elf( struct process* process ) {
+    // get the program header table
     struct elf_file* elf_file = process->elf_file;
-    return paging_map_to(
-        process->task->paging_directory,
-        paging_align_to_lower_page( elf_virtual_base( elf_file ) ),
-        elf_physical_base( elf_file ), // we know this is already aligned b/c kheap only allocate on 4K boundaries
-        paging_align_address( elf_physical_end( elf_file ) ), // align to upper page
-        PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE ); // warning: entire space is writeable
+    struct elf_header* header = elf_header( elf_file );
+
+    // map each program header into memory
+    for( int i = 0; i < header->e_phnum; i++ ) {
+        // get next program header
+        struct elf32_phdr* program_header = elf_program_header( header, i );
+        
+        // determine page flags for this segment
+        int page_flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL;
+        if( PF_W & program_header->p_flags ) page_flags|= PAGING_IS_WRITEABLE;
+
+        // get physical address where we're going to put this segment
+        void* physical_address = elf_program_header_physical_address( elf_file, program_header );
+        
+        // map the memory
+        int res = paging_map_to(
+            process->task->paging_directory,
+            paging_align_floor( (void*)program_header->p_vaddr ),
+            paging_align_floor( physical_address ),
+            paging_align_ceiling( physical_address + program_header->p_filesz ),
+            page_flags );
+        if( res < 0 ) return res;
+    }
+    return 0;
 }
 
 int process_map_memory( struct process* process ) {
@@ -113,7 +132,7 @@ int process_map_memory( struct process* process ) {
         process->task->paging_directory,
         (void*)PEACHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, // note that 'end' comes BEFORE start, since stack grows from higher addresses to lower ones
         process->stack,
-        paging_align_address( process->stack + PEACHOS_USER_PROGRAM_STACK_SIZE ),
+        paging_align_ceiling( process->stack + PEACHOS_USER_PROGRAM_STACK_SIZE ),
         PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE );
 }
 

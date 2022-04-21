@@ -72,14 +72,14 @@ struct elf_header {
     elf32_half e_machine; // architecture (EM_386 is what we want)
     elf32_word e_version; // object file version
     elf32_addr e_entry; // virtual address to start execution
-    elf32_off e_phoff; // offset to program header table
-    elf32_off e_shoff; // offset to section header table
+    elf32_off e_phoff; // offset to 0th program header
+    elf32_off e_shoff; // offset to 0th section header
     elf32_word e_flags; // processor-specific flags
     elf32_half e_ehsize; // size of the elf header
-    elf32_half e_phentsize; // size of a single entry in the program header table
-    elf32_half e_phnum; // # of entries in the program header table
-    elf32_half e_shentsize; // size of a ssingle entry in the section header table
-    elf32_half e_shnum; // # of entries in the section header table
+    elf32_half e_phentsize; // sizeof program header
+    elf32_half e_phnum; // # program headers
+    elf32_half e_shentsize; // sizeof section header
+    elf32_half e_shnum; // # section headers
     elf32_half e_shstrndx; // section header table index of the string table
 } __attribute__((packed));
 

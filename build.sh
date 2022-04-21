@@ -29,10 +29,22 @@ make all && qemu-system-i386 -hda bin/os.bin
 #make all && qemu-system-i386 -hda bin/os.bin
 #make all && qemu-system-x86_64 -hda bin/os.bin
 
+# --DISASSEMBLE / HEX --
+# ndisasm bin/os.bin
+# bless bin/os.bin
+
 # --mount os.bin as FAT16 drive--
 # sudo mkdir /mnt/d
 # sudo mount -t vfat os.bin /mnt/d
 
+# -- ELF FILES --
+# readelf -s *.elf // shows the symbols
+# readelf -S *.elf // shows the sections
+# readelf -a *.elf // all the elf file information
+
+# -- DEBUGGING --
+# debug mode: gdb, target remote | qemu-system-x86_64 -hda bin/boot.bin -S -gdb stdio
+# gdb commands: c (continue), layout asm, info registers
 # cd bin
 # gdb
 # add-symbol-file ../build/kernelfull.o 0x100000
@@ -56,14 +68,9 @@ make all && qemu-system-i386 -hda bin/os.bin
 # print (unsigned char)buffer[0]
 # print *root_path
 
-#debug mode: gdb, target remote | qemu-system-x86_64 -hda bin/boot.bin -S -gdb stdio
-# gdb commands: c (continue), layout asm, info registers
-
-#ndisasm bin/os.bin
-#bless bin/os.bin
-
+# -- WRITE OUR OS TO USB STICK --
 # list block devices
-#lsblk
+# lsblk
 
 # should we write to /dev/sda?
 #read -p "Write to /dev/sda? (y/n)" yn

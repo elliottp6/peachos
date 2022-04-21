@@ -22,3 +22,10 @@ void* elf_virtual_base( struct elf_file* file );
 void* elf_virtual_end( struct elf_file* file );
 void* elf_physical_base( struct elf_file* file );
 void* elf_physical_end( struct elf_file* file );
+void* elf_program_header_physical_address( struct elf_file* file, struct elf32_phdr* header );
+
+// properties
+void* elf_memory( struct elf_file* file );
+struct elf_header* elf_header( struct elf_file* file );
+struct elf32_shdr* elf_section_header( struct elf_header* header, int index ); // section header
+struct elf32_phdr* elf_program_header( struct elf_header* header, int index ); // program header

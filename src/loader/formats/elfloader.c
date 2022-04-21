@@ -54,22 +54,16 @@ void* elf_memory( struct elf_file* file ) { return file->elf_memory; }
 // elf header
 struct elf_header* elf_header( struct elf_file* file ) { return file->elf_memory; }
 
-// elf section header table TODO: this style of accessing offsets is memory unsafe (b/c who knows what e_shoff could be set to!)
-struct elf32_shdr* elf_sheader( struct elf_header* header ) {
-    return (struct elf32_shdr*)( (int)header + header->e_shoff );
-}
+// elf section headers TODO: these are memory unsafe
+struct elf32_shdr* elf_section_header0( struct elf_header* header ) { return (struct elf32_shdr*)( (int)header + header->e_shoff ); }
+struct elf32_shdr* elf_section_header( struct elf_header* header, int index ) { return &elf_section_header0( header )[index]; }
 
-// elf program header table (optional) TODO: this is also memory unsafe
-struct elf32_phdr* elf_pheader(struct elf_header* header) {
-    return 0 != header->e_phoff ? (struct elf32_phdr*)( (int)header + header->e_phoff ) : 0;
-}
-
-// elf header (program or section) @ index TODO: this is also memory unsafe, b/c we could easily read past the buffer
-struct elf32_phdr* elf_program_header( struct elf_header* header, int index ) { return &elf_pheader( header )[index]; }
-struct elf32_shdr* elf_section_header( struct elf_header* header, int index ) { return &elf_sheader( header )[index]; }
+// elf program headers TODO: this is also memory unsafe
+struct elf32_phdr* elf_program_header0( struct elf_header* header ) { return 0 != header->e_phoff ? (struct elf32_phdr*)( (int)header + header->e_phoff ) : NULL; }
+struct elf32_phdr* elf_program_header( struct elf_header* header, int index ) { return &elf_program_header0( header )[index]; }
 
 // points to string table section
-char* elf_str_table( struct elf_header* header ) {
+char* elf_string_table( struct elf_header* header ) {
     struct elf32_shdr* stringtable_section_header = elf_section_header( header, header->e_shstrndx );
     return (char*)header + stringtable_section_header->sh_offset;
 }
@@ -78,11 +72,12 @@ void* elf_virtual_base( struct elf_file* file ) { return file->virtual_base_addr
 void* elf_virtual_end( struct elf_file* file ) { return file->virtual_end_address; }
 void* elf_physical_base( struct elf_file* file ) { return file->physical_base_address; }
 void* elf_physical_end( struct elf_file* file ) { return file->physical_end_address; }
+void* elf_program_header_physical_address( struct elf_file* file, struct elf32_phdr* header ) { return elf_memory( file ) + header->p_offset; }
 
 // -- LOADING --
 
 // process a program header to update the elf base and end addresses to encompass this segment
-int elf_process_phdr_pt_load( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
+int elf_process_program_header_pt_load( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
     // update the ELF's base (start) address (minimum of all program header base addresses)
     if( NULL == elf_file->virtual_base_address || (void*)program_header->p_vaddr < elf_file->virtual_base_address ) {
         elf_file->virtual_base_address = (void*)program_header->p_vaddr;
@@ -100,22 +95,22 @@ int elf_process_phdr_pt_load( struct elf_file* elf_file, struct elf32_phdr* prog
     return 0;
 }
 
-int elf_process_pheader( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
+int elf_process_program_header( struct elf_file* elf_file, struct elf32_phdr* program_header ) {
     switch( program_header->p_type ) {
-        case PT_LOAD: return elf_process_phdr_pt_load( elf_file, program_header );
+        case PT_LOAD: return elf_process_program_header_pt_load( elf_file, program_header );
         default: return 0;
     }
 }
 
 // process the program headers
-int elf_process_pheaders( struct elf_file* elf_file ) {
+int elf_process_program_headers( struct elf_file* elf_file ) {
     // get header
     struct elf_header* header = elf_header( elf_file );
 
     // process all the program headers
     for( int i = 0, res; i < header->e_phnum; i++ ) {
         struct elf32_phdr* program_header = elf_program_header( header, i );
-        if( (res = elf_process_pheader( elf_file, program_header )) < 0 ) return res;
+        if( (res = elf_process_program_header( elf_file, program_header )) < 0 ) return res;
     }
     return 0;    
 }
@@ -130,7 +125,7 @@ int elf_process_loaded( struct elf_file* elf_file ) {
     if( res < 0 ) return res;
 
     // process the program headers
-    if( (res = elf_process_pheaders( elf_file )) < 0 ) goto out;
+    if( (res = elf_process_program_headers( elf_file )) < 0 ) goto out;
 
     // TODO: continue
 
