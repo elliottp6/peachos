@@ -5,3 +5,5 @@ all:
 
 clean:
 	rm -rf ../../build/programs/blank.o
+	rm -rf ../../bin/blank.bin
+	rm -rf ../../bin/blank.elf

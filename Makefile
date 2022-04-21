@@ -13,6 +13,7 @@ all: bin/boot.bin bin/kernel.bin user_programs
 	sudo cp hello.txt /mnt/d
 	sudo cp bin/blank.bin /mnt/d
 	sudo cp bin/blank.elf /mnt/d
+	sudo cp bin/blankc.elf /mnt/d
 	sudo umount /mnt/d
 
 # link kernel (note that kernel.asm MUST be the first object file, so that we get the entry point in the right place)
@@ -143,9 +144,12 @@ build/loader/formats/elfloader.o: src/loader/formats/elfloader.c
 # build programs
 user_programs:
 	cd programs/blank && $(MAKE) all
+	cd programs/blankc && $(MAKE) all
 
+# clean programs
 user_programs_clean:
 	cd programs/blank && $(MAKE) clean
+	cd programs/blankc && $(MAKE) clean
 
 # clean project
 clean: user_programs_clean
