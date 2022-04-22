@@ -1,4 +1,4 @@
-FILES=../../build/programs/start.o ../../build/programs/peachos.o ../../build/programs/stdlib.o
+FILES=../../build/programs/start.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o
 INCLUDES=
 FLAGS= -g
 
@@ -17,6 +17,10 @@ all: ${FILES}
 # compile stdlib.c
 ../../build/programs/stdlib.o: stdlib.c
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c stdlib.c -o ../../build/programs/stdlib.o
+
+# compile stdio.c
+../../build/programs/stdio.o: stdio.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c stdio.c -o ../../build/programs/stdio.o
 
 clean:
 	rm -rf ${FILES}

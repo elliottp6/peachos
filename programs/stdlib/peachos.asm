@@ -6,6 +6,7 @@ global print:function
 global getkey:function
 global peachos_malloc:function
 global peachos_free:function
+global peachos_putchar:function
 
 ; void print( const char* message );
 print:
@@ -32,6 +33,22 @@ getkey:
     ; body
     mov eax, 2 ; command 'getkey'
     int 0x80 ; note that eax contains return value, and in C the convention is that eax contains return value if it can fit into 4 bytes
+
+    ; destroy stack frame
+    pop ebp
+    ret
+
+; void putchar( char c );
+peachos_putchar:
+    ; create stack frame
+    push ebp
+    mov ebp, esp
+
+    ; body
+    mov eax, 3 ; command 'putchar'
+    push dword[ebp + 8] ; arg #1
+    int 0x80 ; syscall
+    add esp, 4 ; pop args
 
     ; destroy stack frame
     pop ebp
