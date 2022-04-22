@@ -143,7 +143,7 @@ static int process_map_elf( struct process* process ) {
             process->task->paging_directory,
             paging_align_floor( (void*)program_header->p_vaddr ),
             paging_align_floor( physical_address ),
-            paging_align_ceiling( physical_address + program_header->p_filesz ),
+            paging_align_ceiling( physical_address + program_header->p_memsz ), // bugfix: memsz and filesize might be different (example: static array)
             page_flags );
         if( res < 0 ) return res;
     }
