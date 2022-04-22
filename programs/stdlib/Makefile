@@ -1,6 +1,6 @@
 FILES=../../build/programs/start.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o
 INCLUDES=
-FLAGS= -g
+FLAGS = -g -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 # link files
 all: ${FILES}

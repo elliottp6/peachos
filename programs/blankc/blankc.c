@@ -12,6 +12,7 @@ int main( int argc, char** argv ) {
     putchar( 'z' );
     free( p );
     print( "freed the pointer\n" );
+    printf( "My age is %i\n", 98 );
     while( 1 ) { if( 0 != getkey() ) print( "key was pressed\n" ); }
     return 0;
 }
