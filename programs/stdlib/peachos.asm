@@ -1,8 +1,11 @@
 [BITS 32]
 
+section .asm ; safer to use this to avoid alignment issues that would happen if we mixed this with C object code
+
 global print:function
 global getkey:function
 global peachos_malloc:function
+global peachos_free:function
 
 ; void print( const char* message );
 print:
@@ -42,6 +45,22 @@ peachos_malloc:
     
     ; body
     mov eax, 4 ; command 'malloc'
+    push dword[ebp + 8]; push arg #1
+    int 0x80
+    add esp, 4 ; pop args
+
+    ; destroy stack frame
+    pop ebp
+    ret
+
+; void peachos_free( void* ptr );
+peachos_free:
+    ; create stack frame
+    push ebp
+    mov ebp, esp
+    
+    ; body
+    mov eax, 5 ; command 'free'
     push dword[ebp + 8]; push arg #1
     int 0x80
     add esp, 4 ; pop args

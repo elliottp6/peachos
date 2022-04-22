@@ -6,6 +6,8 @@ int main( int argc, char** argv ) {
     print( "second syscall from blank.c!\n" );
     int* p = (int*)malloc( 4 );
     if( NULL == p ) print( "malloc returned null\n" ); else print( "malloc returned non-null\n" );
+    free( p );
+    print( "freed the pointer\n" );
     while( 1 ) {
         if( 0 != getkey() ) print( "key was pressed\n" );
     }
