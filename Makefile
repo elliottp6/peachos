@@ -143,11 +143,13 @@ build/loader/formats/elfloader.o: src/loader/formats/elfloader.c
 
 # build programs
 user_programs:
+	cd programs/stdlib && $(MAKE) all
 	cd programs/blank && $(MAKE) all
 	cd programs/blankc && $(MAKE) all
 
 # clean programs
 user_programs_clean:
+	cd programs/stdlib && $(MAKE) clean
 	cd programs/blank && $(MAKE) clean
 	cd programs/blankc && $(MAKE) clean
 
