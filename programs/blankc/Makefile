@@ -1,5 +1,6 @@
 FILES=../../build/programs/blankc.o
 INCLUDES= -I../stdlib
+FLAGS= -g
 
 # link object files
 all: $(FILES)
@@ -7,7 +8,7 @@ all: $(FILES)
 
 # compile blankc.c
 ../../build/programs/blankc.o: blankc.c
-	i686-elf-gcc $(INCLUDES) -I./$(FLAGS) -std=gnu99 -c blankc.c -o ../../build/programs/blankc.o
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c blankc.c -o ../../build/programs/blankc.o
 
 clean:
 	rm -rf $(FILES)

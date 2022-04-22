@@ -35,8 +35,8 @@ struct process {
 
 // functions
 int process_load( const char* filename, struct process** process );
-int process_load_switch( const char* filename, struct process** process );
-int process_load_for_slot( const char* filename, struct process** process, int process_slot );
-int process_switch( struct process* process );
-struct process* process_current(); // this is the process which has the FOCUS (not neccessarily even running!)
+int process_load_and_give_focus( const char* filename, struct process** process );
+int process_focus( struct process* process );
+struct process* process_focused();
 struct process* process_get( int process_id );
+void* process_malloc( struct process* process, size_t size );

@@ -147,7 +147,7 @@ void kernel_main() {
 
     // load program
     struct process* process = NULL;
-    int res = process_load_switch( "0:/blankc.elf", &process );
+    int res = process_load_and_give_focus( "0:/blankc.elf", &process );
     if( PEACHOS_ALL_OK != res ) panic( "failed to load blankc.elf\n" ); else print( "Loaded blankc.elf OK\n" );
 
     // test: push character to current process' keyboard buffer

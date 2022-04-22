@@ -49,8 +49,8 @@ void keyboard_push( char c ) {
     // don't allow zero to be pushed (or else buffer would be corrupted)
     if( !c ) return;
 
-    // get the current process
-    struct process* process = process_current();
+    // get the current process that has the focus
+    struct process* process = process_focused();
     if( !process ) return;
 
     // push character into process' keyboard buffer

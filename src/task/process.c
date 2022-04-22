@@ -11,22 +11,40 @@
 #include "loader/formats/elfloader.h"
 
 // process storage
-struct process* current_process = 0;
+struct process* focused_process = 0;
 static struct process* processes[PEACHOS_MAX_PROCESSES] = {};
 
-static void process_init( struct process* process ) {
-    memset( process, 0, sizeof( struct process ) );
-}
+static void process_init( struct process* process ) { memset( process, 0, sizeof( struct process ) ); }
 
-struct process* process_current() { return current_process; }
+struct process* process_focused() { return focused_process; }
 
 struct process* process_get( int process_id ) {
     if( process_id < 0 || process_id >= PEACHOS_MAX_PROCESSES ) return NULL;
     return processes[process_id];
 }
 
+static int process_find_free_allocation_index( struct process* process ) {
+    for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ )
+        if( !process->allocations[i] ) return i;
+    return -ENOMEM;
+}
+
+void* process_malloc( struct process* process, size_t size ) {
+    // find an allocation slot
+    int index = process_find_free_allocation_index( process );
+    if( index < 0 ) return NULL;
+    
+    // allocate on kernel heap
+    void* ptr = kzalloc( size );
+    if( !ptr ) return NULL;
+
+    // save ptr so we can deallocate it when process terminates
+    process->allocations[index] = ptr;
+    return ptr;
+}
+
 // note: in another OS, there might be something to actually do here
-int process_switch( struct process* process ) { current_process = process; return 0; }
+int process_focus( struct process* process ) { focused_process = process; return 0; }
 
 static int process_load_binary( const char* filename, struct process* process ) {
     // open the file containing the binary
@@ -141,19 +159,6 @@ int process_get_free_slot() {
     return -EISTKN;
 }
 
-int process_load( const char* filename, struct process** process ) {
-    // get available slot
-    int process_slot = process_get_free_slot();
-    if( process_slot < 0 ) return -ENOMEM;
-
-    // load process into slot
-    return process_load_for_slot( filename, process, process_slot );
-}
-
-int process_load_switch( const char* filename, struct process** process ) {
-    int res = process_load( filename, process );
-    return 0 == res ? process_switch( *process ) : res;
-}
 
 int process_load_for_slot( const char* filename, struct process** process, int process_slot ) {
     // make sure slot is available
@@ -197,4 +202,18 @@ out:
         // TODO: free the process data
     }
     return res;
+}
+
+int process_load( const char* filename, struct process** process ) {
+    // get available slot
+    int process_slot = process_get_free_slot();
+    if( process_slot < 0 ) return -ENOMEM;
+
+    // load process into slot
+    return process_load_for_slot( filename, process, process_slot );
+}
+
+int process_load_and_give_focus( const char* filename, struct process** process ) {
+    int res = process_load( filename, process );
+    return 0 == res ? process_focus( *process ) : res;
 }

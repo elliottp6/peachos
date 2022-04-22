@@ -2,7 +2,7 @@
 #include "peachos.h"
 
 void* malloc( size_t size ) {
-    return NULL;
+    return peachos_malloc( size );
 }
 
 void free( void* ptr ) {

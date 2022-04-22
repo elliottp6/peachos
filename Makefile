@@ -1,5 +1,5 @@
 # files
-FILES = build/kernel.asm.o build/kernel.o build/idt/idt.asm.o build/idt/idt.o build/memory/memory.o build/io/io.asm.o build/memory/heap/heap.o build/memory/heap/kheap.o build/memory/paging/paging.o build/memory/paging/paging.asm.o build/disk/disk.o build/fs/pparser.o build/string/string.o build/disk/streamer.o build/fs/file.o build/fs/fat/fat16.o build/gdt/gdt.asm.o build/gdt/gdt.o build/task/tss.asm.o build/task/task.asm.o build/task/task.o build/task/process.o build/isr80h/isr80h.o build/isr80h/misc.o build/isr80h/io.o build/keyboard/keyboard.o build/keyboard/classic.o build/loader/formats/elf.o build/loader/formats/elfloader.o
+FILES = build/kernel.asm.o build/kernel.o build/idt/idt.asm.o build/idt/idt.o build/memory/memory.o build/io/io.asm.o build/memory/heap/heap.o build/memory/heap/kheap.o build/memory/paging/paging.o build/memory/paging/paging.asm.o build/disk/disk.o build/fs/pparser.o build/string/string.o build/disk/streamer.o build/fs/file.o build/fs/fat/fat16.o build/gdt/gdt.asm.o build/gdt/gdt.o build/task/tss.asm.o build/task/task.asm.o build/task/task.o build/task/process.o build/isr80h/isr80h.o build/isr80h/misc.o build/isr80h/io.o build/keyboard/keyboard.o build/keyboard/classic.o build/loader/formats/elf.o build/loader/formats/elfloader.o build/isr80h/heap.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -140,6 +140,10 @@ build/loader/formats/elf.o: src/loader/formats/elf.c
 # compile loader/formats/elfloader.c functions
 build/loader/formats/elfloader.o: src/loader/formats/elfloader.c
 	i686-elf-gcc $(INCLUDES) -I./src/loader/formats $(FLAGS) -std=gnu99 -c src/loader/formats/elfloader.c -o build/loader/formats/elfloader.o
+
+# compile heap.c functions
+build/isr80h/heap.o: src/isr80h/heap.c
+	i686-elf-gcc $(INCLUDES) -I./src/isr80h $(FLAGS) -std=gnu99 -c src/isr80h/heap.c -o build/isr80h/heap.o
 
 # build programs
 user_programs:
