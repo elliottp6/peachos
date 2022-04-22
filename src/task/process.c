@@ -43,6 +43,21 @@ void* process_malloc( struct process* process, size_t size ) {
     return ptr;
 }
 
+static bool process_remove_allocation( struct process* process, void* ptr ) {
+    for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ ) {
+        if( ptr == process->allocations[i] ) {
+            process->allocations[i] = NULL;
+            return true;
+        }
+    }
+    return false;
+}
+
+void process_free( struct process* process, void* ptr ) {
+    if( !process_remove_allocation( process, ptr ) ) return;
+    kfree( ptr );
+}
+
 // note: in another OS, there might be something to actually do here
 int process_focus( struct process* process ) { focused_process = process; return 0; }
 

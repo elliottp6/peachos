@@ -40,3 +40,4 @@ int process_focus( struct process* process );
 struct process* process_focused();
 struct process* process_get( int process_id );
 void* process_malloc( struct process* process, size_t size );
+void process_free( struct process* process, void* ptr );
