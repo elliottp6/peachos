@@ -1,4 +1,4 @@
-FILES=../../build/programs/start.o
+FILES=../../build/programs/start.o ../../build/programs/peachos.o
 INCLUDES=
 
 all: ${FILES}
@@ -6,6 +6,9 @@ all: ${FILES}
 
 ../../build/programs/start.o:
 	nasm -f elf start.asm -o ../../build/programs/start.o
+
+../../build/programs/peachos.o:
+	nasm -f elf peachos.asm -o ../../build/programs/peachos.o
 
 clean:
 	rm -rf ${FILES}

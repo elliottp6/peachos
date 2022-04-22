@@ -1,5 +1,5 @@
 FILES=../../build/programs/blankc.o
-INCLUDES=
+INCLUDES= -I../stdlib
 
 # link object files
 all: $(FILES)
