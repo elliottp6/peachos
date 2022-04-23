@@ -15,7 +15,10 @@ int main( int argc, char** argv ) {
     printf( "My age is %i\n", 98 );
     print( "press any key to continue\n" );
     peachos_getkey_block();
-    print( "continued!\n" );
+    print( "continued! What is your name? " );
+    char buf[1024];
+    peachos_terminal_readline( buf, sizeof( buf ), true );
+    printf( "\nnice to meet you, %s!\n", buf );
     while( 1 ) { if( 0 != peachos_getkey() ) print( "key was pressed\n" ); }
     return 0;
 }
