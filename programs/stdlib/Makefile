@@ -1,6 +1,6 @@
-FILES=../../build/programs/start.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o
+FILES=../../build/programs/start.o ../../build/programs/peachos.asm.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o
 INCLUDES=
-FLAGS = -g -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 # link files
 all: ${FILES}
@@ -11,8 +11,12 @@ all: ${FILES}
 	nasm -f elf start.asm -o ../../build/programs/start.o
 
 # assemble peachos.asm
-../../build/programs/peachos.o:
-	nasm -f elf peachos.asm -o ../../build/programs/peachos.o
+../../build/programs/peachos.asm.o:
+	nasm -f elf peachos.asm -o ../../build/programs/peachos.asm.o
+
+# compile peachos.c
+../../build/programs/peachos.o: peachos.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c peachos.c -o ../../build/programs/peachos.o
 
 # compile stdlib.c
 ../../build/programs/stdlib.o: stdlib.c

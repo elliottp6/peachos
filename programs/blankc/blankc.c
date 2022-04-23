@@ -13,6 +13,9 @@ int main( int argc, char** argv ) {
     free( p );
     print( "freed the pointer\n" );
     printf( "My age is %i\n", 98 );
-    while( 1 ) { if( 0 != getkey() ) print( "key was pressed\n" ); }
+    print( "press any key to continue\n" );
+    peachos_getkey_block();
+    print( "continued!\n" );
+    while( 1 ) { if( 0 != peachos_getkey() ) print( "key was pressed\n" ); }
     return 0;
 }

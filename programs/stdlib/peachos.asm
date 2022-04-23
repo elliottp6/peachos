@@ -3,7 +3,7 @@
 section .asm ; safer to use this to avoid alignment issues that would happen if we mixed this with C object code
 
 global print:function
-global getkey:function
+global peachos_getkey:function
 global peachos_malloc:function
 global peachos_free:function
 global peachos_putchar:function
@@ -24,8 +24,8 @@ print:
     pop ebp
     ret
 
-; int getkey();
-getkey:
+; int peachos_getkey();
+peachos_getkey:
     ; create stack frame
     push ebp
     mov ebp, esp
@@ -38,7 +38,7 @@ getkey:
     pop ebp
     ret
 
-; void putchar( char c );
+; void peachos_putchar( char c );
 peachos_putchar:
     ; create stack frame
     push ebp
