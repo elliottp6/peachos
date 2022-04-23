@@ -14,6 +14,7 @@ all: bin/boot.bin bin/kernel.bin user_programs
 	sudo cp bin/blank.bin /mnt/d
 	sudo cp bin/blank.elf /mnt/d
 	sudo cp bin/blankc.elf /mnt/d
+	sudo cp bin/shell.elf /mnt/d
 	sudo umount /mnt/d
 
 # link kernel (note that kernel.asm MUST be the first object file, so that we get the entry point in the right place)
@@ -148,12 +149,14 @@ build/isr80h/heap.o: src/isr80h/heap.c
 # build programs
 user_programs:
 	cd programs/stdlib && $(MAKE) all
+	cd programs/shell && $(MAKE) all
 	cd programs/blank && $(MAKE) all
 	cd programs/blankc && $(MAKE) all
 
 # clean programs
 user_programs_clean:
 	cd programs/stdlib && $(MAKE) clean
+	cd programs/shell && $(MAKE) clean
 	cd programs/blank && $(MAKE) clean
 	cd programs/blankc && $(MAKE) clean
 
