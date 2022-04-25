@@ -10,6 +10,7 @@ int main( int argc, char** argv ) {
         char buf[1024];
         peachos_terminal_readline( buf, sizeof( buf ), true );
         printf( "\n'%s'\n", buf );
+        peachos_process_load_start( buf );
     }
     return 0;
 }

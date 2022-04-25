@@ -137,7 +137,7 @@ out:
 int elf_load( const char* filename, struct elf_file** file_out ) {
     // open the file
     int fd = fopen( filename, "r" );
-    if( fd < 0 ) return fd;
+    if( fd <= 0 ) return -EIO;
     
     // get file stats
     int res;

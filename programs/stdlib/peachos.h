@@ -9,3 +9,4 @@ void peachos_putchar( char c );
 int peachos_getkey();
 int peachos_getkey_block();
 void peachos_terminal_readline( char* out, int max, bool output_while_typing );
+void peachos_process_load_start( const char* filename );
