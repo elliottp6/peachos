@@ -1,9 +1,18 @@
 #include "peachos.h"
 #include "stdlib.h"
 #include "stdio.h"
+#include "string.h"
 
 int main( int argc, char** argv ) {
-    print( "hello, how are you? I am blank.c!\n" );
+    // test strtok
+    char words[] = "hello how are you";
+    const char* token = strtok( words, " " );
+    while( token ) {
+        printf( "%s\n", token );
+        token = strtok( NULL, " " );
+    }
+
+    // test malloc
     int* p = (int*)malloc( 4 );
     print( "pointer is: " );
     print( itoa( (int)p ) );
@@ -11,10 +20,8 @@ int main( int argc, char** argv ) {
     print( itoa( 4096 ) );
     putchar( 'z' );
     free( p );
-    print( "freed the pointer\n" );
-    printf( "My age is %i\n", 98 );
-    print( "press any key to continue\n" );
-    peachos_getkey_block();
+
+    // test terminal readline
     print( "continued! What is your name? " );
     char buf[1024];
     peachos_terminal_readline( buf, sizeof( buf ), true );

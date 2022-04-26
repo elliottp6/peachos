@@ -1,4 +1,4 @@
-FILES=../../build/programs/start.o ../../build/programs/peachos.asm.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o
+FILES=../../build/programs/start.o ../../build/programs/peachos.asm.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o ../../build/programs/memory.o ../../build/programs/string.o
 INCLUDES=
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -25,6 +25,14 @@ all: ${FILES}
 # compile stdio.c
 ../../build/programs/stdio.o: stdio.c
 	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c stdio.c -o ../../build/programs/stdio.o
+
+# compile memory.c
+../../build/programs/memory.o: memory.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c memory.c -o ../../build/programs/memory.o
+
+# compile string.c
+../../build/programs/string.o: string.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c string.c -o ../../build/programs/string.o
 
 clean:
 	rm -rf ${FILES}
