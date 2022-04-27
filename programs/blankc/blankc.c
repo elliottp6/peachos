@@ -5,9 +5,7 @@
 
 int main( int argc, char** argv ) {
     // print arguments
-    struct process_arguments args;
-    peachos_process_get_arguments( &args );
-    printf( "%i %s\n", args.argc, args.argv[0] );
+    printf( "%i %s\n", argc, argv[0] );
 
     // test malloc
     char* p = (char*)malloc( 20 );

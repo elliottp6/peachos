@@ -1,4 +1,4 @@
-FILES=../../build/programs/start.o ../../build/programs/peachos.asm.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o ../../build/programs/memory.o ../../build/programs/string.o
+FILES=../../build/programs/start.asm.o ../../build/programs/start.o ../../build/programs/peachos.asm.o ../../build/programs/peachos.o ../../build/programs/stdlib.o ../../build/programs/stdio.o ../../build/programs/memory.o ../../build/programs/string.o
 INCLUDES=
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -7,8 +7,12 @@ all: ${FILES}
 	i686-elf-ld -m elf_i386 -relocatable ${FILES} -o ../../build/programs/stdlib.elf
 
 # assemble start.asm
-../../build/programs/start.o:
-	nasm -f elf start.asm -o ../../build/programs/start.o
+../../build/programs/start.asm.o:
+	nasm -f elf start.asm -o ../../build/programs/start.asm.o
+
+# compile start.c
+../../build/programs/start.o: start.c
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c start.c -o ../../build/programs/start.o
 
 # assemble peachos.asm
 ../../build/programs/peachos.asm.o:
