@@ -8,13 +8,16 @@
 #define PROCESS_FILETYPE_BINARY 1
 typedef uint8_t PROCESS_FILETYPE;
 
+// process allocation object
+struct process_allocation { void* ptr; size_t size; };
+
 // process object
 struct process {
     // process info
     uint16_t id;
     char filename[PEACHOS_MAX_PATH];
     struct task* task;
-    void* allocations[PEACHOS_MAX_PROGRAM_ALLOCATIONS]; // memory allocations of the process
+    struct process_allocation allocations[PEACHOS_MAX_PROGRAM_ALLOCATIONS]; // memory allocations of the process
     
     // process memory
     PROCESS_FILETYPE filetype;

@@ -25,7 +25,7 @@ struct process* process_get( int process_id ) {
 
 static int process_find_free_allocation_index( struct process* process ) {
     for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ )
-        if( !process->allocations[i] ) return i;
+        if( !process->allocations[i].ptr ) return i;
     return -ENOMEM;
 }
 
@@ -47,22 +47,30 @@ void* process_malloc( struct process* process, size_t size ) {
     }
 
     // finally, save the pointer in the process' allocation table, so we can deallocate it when process terminates
-    process->allocations[index] = ptr;
+    process->allocations[index].ptr = ptr;
+    process->allocations[index].size = size;
     return ptr;
 }
 
-static bool process_remove_allocation( struct process* process, void* ptr ) {
-    for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ ) {
-        if( ptr == process->allocations[i] ) {
-            process->allocations[i] = NULL;
-            return true;
-        }
-    }
-    return false;
+static struct process_allocation* process_get_allocation_by_addr( struct process* process, void* addr ) {
+    for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ )
+        if( process->allocations[i].ptr == addr ) return &process->allocations[i];
+    return NULL;
 }
 
 void process_free( struct process* process, void* ptr ) {
-    if( !process_remove_allocation( process, ptr ) ) return;
+    // get the associated allocation
+    struct process_allocation* allocation = process_get_allocation_by_addr( process, ptr );
+    if( NULL == allocation ) return;
+
+    // mark pages as inaccessible
+    paging_map_to( process->task->paging_directory, ptr, ptr, paging_align_ceiling( ptr + allocation->size ), 0 );
+
+    // remove the allocation
+    allocation->ptr = NULL;
+    allocation->size = 0;
+
+    // free the kernel memory
     kfree( ptr );
 }
 

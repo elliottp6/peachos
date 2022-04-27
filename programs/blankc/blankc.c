@@ -6,9 +6,12 @@
 int main( int argc, char** argv ) {
     // test malloc
     char* p = (char*)malloc( 20 );
-    strcpy( p, "Welcome to blankc!\n" );
-    print( p );
+    strcpy( p, "Welcome to blankc!" );
+    printf( "read before free: %s\n", p );
     free( p );
+    printf( "read after free: %s\n", p ); // <-- does not trigger crash, but cannot read memory (zeros)
+    //p[0] = 'A'; // <-- triggers a crash
+    //printf( "write after free: %s\n", p );
 
     // test strtok
     char words[] = "hello there";
