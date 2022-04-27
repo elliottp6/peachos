@@ -190,7 +190,6 @@ int process_get_free_slot() {
     return -EISTKN;
 }
 
-
 int process_load_for_slot( const char* filename, struct process** process, int process_slot ) {
     // make sure slot is available
     if( NULL != process_get( process_slot ) ) return -EISTKN;

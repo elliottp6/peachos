@@ -13,10 +13,18 @@ int main( int argc, char** argv ) {
     //p[0] = 'A'; // <-- triggers a crash
     //printf( "write after free: %s\n", p );
 
+    // test parse command
+    char str[] = "hello world";
+    struct command_argument* arg = peachos_parse_command( str, sizeof( str ) );
+    while( arg ) {
+        printf( "%s,", arg->argument );
+        arg = arg->next;
+    }
+
     // test strtok
-    char words[] = "hello there";
+    /*char words[] = "hello there";
     const char* token = strtok( words, " " );
-    while( token ) { printf( "%s,", token ); token = strtok( NULL, " " ); }
+    while( token ) { printf( "%s,", token ); token = strtok( NULL, " " ); }*/
 
     // test terminal readline
     print( "\nWhat is your name? " );
