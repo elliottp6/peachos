@@ -34,11 +34,19 @@ void* process_malloc( struct process* process, size_t size ) {
     int index = process_find_free_allocation_index( process );
     if( index < 0 ) return NULL;
     
-    // allocate on kernel heap
+    // allocate on kernel heap (note that it's already aligned to 4096 bytes)
     void* ptr = kzalloc( size );
     if( !ptr ) return NULL;
 
-    // save ptr so we can deallocate it when process terminates
+    // map the userspace memory to the kernel's allocation using physical->physical mapping
+    if( paging_map_to(
+            process->task->paging_directory, ptr, ptr, paging_align_ceiling( ptr + size ),
+            PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL ) < 0 ) {
+        kfree( ptr ); // if mapping fails, make sure we free the allocation to avoid a memory leak
+        return NULL;
+    }
+
+    // finally, save the pointer in the process' allocation table, so we can deallocate it when process terminates
     process->allocations[index] = ptr;
     return ptr;
 }
