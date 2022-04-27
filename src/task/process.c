@@ -58,6 +58,48 @@ static struct process_allocation* process_get_allocation_by_addr( struct process
     return NULL;
 }
 
+void process_get_arguments( struct process* process, int* argc, char*** argv ) {
+    *argc = process->arguments.argc;
+    *argv = process->arguments.argv;
+}
+
+int process_count_command_arguments( struct command_argument* root_argument ) {
+    int i;
+    for( i = 0; root_argument; i++, root_argument = root_argument->next );
+    return i;
+}
+
+int process_inject_arguments( struct process* process, struct command_argument* root_argument ) {
+    // determine argc
+    int argc = process_count_command_arguments( root_argument );
+    if( 0 == argc ) return -EIO;
+
+    // allocate memory for the argument array
+    char **argv = process_malloc( process, argc * sizeof( const char* ) );
+    if( !argv ) return -ENOMEM;
+    
+    // allocate & set each argument
+    int res = 0;
+    struct command_argument* current = root_argument;
+    for( int i = 0; current; current = current->next, i++ ) {
+        // allocate memory for this argument
+        char* argument_str = process_malloc( process, sizeof( current->argument ) );
+        if( !argument_str ) { res = -ENOMEM; goto out; }
+
+        // copy string into it (works b/c we've mapped the pages the same in kernel space)
+        strncpy( argument_str, current->argument, sizeof( current->argument ) );
+        argv[i] = argument_str;
+    }
+
+    // set process fields
+    process->arguments.argc = argc;
+    process->arguments.argv = argv;
+
+out:
+    // TODO: on error, free the arguments
+    return res;
+}
+
 void process_free( struct process* process, void* ptr ) {
     // get the associated allocation
     struct process_allocation* allocation = process_get_allocation_by_addr( process, ptr );

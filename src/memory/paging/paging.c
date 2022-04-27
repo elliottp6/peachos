@@ -108,10 +108,10 @@ int paging_set( uint32_t* directory, void* virtual_address, uint32_t value ) {
     return res;
 }
 
-uint32_t paging_get( uint32_t* directory, void* virtual_address ) {
+uint32_t paging_get( uint32_t* directory, void* virt ) {
     // get table indices
     uint32_t directory_index = 0, table_index = 0;
-    if( paging_get_indexes( virtual_address, &directory_index, &table_index ) < 0 )
+    if( paging_get_indexes( virt, &directory_index, &table_index ) < 0 )
         panic( "cannot get page table index for unaligned address\n" );
 
     // get entry and get table pointer
@@ -119,4 +119,10 @@ uint32_t paging_get( uint32_t* directory, void* virtual_address ) {
 
     // lookup address in table
     return table[table_index];
+}
+
+void* paging_get_physical_address( uint32_t* directory, void* virt ) {
+    void *virt_floor = paging_align_floor( virt );
+    uint32_t offset = (uint32_t)virt - (uint32_t)virt_floor;
+    return (void*)( (paging_get( directory, virt_floor ) & 0xFFFFF000) + offset );
 }

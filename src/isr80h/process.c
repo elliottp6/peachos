@@ -31,3 +31,18 @@ void* isr80h_command6_process_load_start( struct interrupt_frame* frame ) {
 out:
     return NULL;
 }
+
+void* isr80h_command7_invoke_system_command( struct interrupt_frame* frame ) {
+    return 0;
+}
+
+void* isr80h_command8_get_program_arguments( struct interrupt_frame* frame ) {
+    // get 1st argument to this command (userspace pointer to process_arguments)
+    struct task* task = task_current();
+    void* item = task_get_stack_item( task, 0 );
+
+    // convert pointer to kernel space & write the process' arguments into it
+    struct process_arguments* args = task_virtual_address_to_physical( task, item );
+    process_get_arguments( task->process, &args->argc, &args->argv );
+    return 0;
+}

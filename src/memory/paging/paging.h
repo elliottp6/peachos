@@ -38,3 +38,4 @@ int paging_map_range( struct paging_4gb_chunk* directory, void* virt, void* phys
 int paging_map_to( struct paging_4gb_chunk* directory, void* virt, void* phys, void* phys_end, int flags );
 void* paging_align_ceiling( void* address );
 void* paging_align_floor( void* address );
+void* paging_get_physical_address( uint32_t* directory, void* virt );

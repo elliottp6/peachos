@@ -185,3 +185,7 @@ void* task_get_stack_item( struct task* task, int i ) {
     kernel_page();
     return value;
 }
+
+void* task_virtual_address_to_physical( struct task* task, void* virt ) {
+    return paging_get_physical_address( task->paging_directory->directory_entry, virt );
+}
