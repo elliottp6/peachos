@@ -34,16 +34,6 @@ void idt_set( int i, void* func ) {
     desc->offset_2 = (uint32_t)func >> 16;
 }
 
-void idt_zero() {
-    // do something to handle the interrupt
-    print( "divide by zero error\n" );
-}
-
-void no_interrupt_handler() {
-    // must send an acknowledgement that the interrupt was handled (or else, processor will stop sending interrupts)
-    outb( 0x20, 0x20 );
-}
-
 void interrupt_handler( int interrupt, struct interrupt_frame* frame ) {
     // switch from user page to kernel page
     kernel_page();
@@ -62,6 +52,20 @@ void interrupt_handler( int interrupt, struct interrupt_frame* frame ) {
     outb( 0x20, 0x20 );
 }
 
+void idt_zero() {
+    // do something to handle the interrupt
+    panic( "divide by zero error\n" );
+}
+
+void no_interrupt_handler() {
+    // must send an acknowledgement that the interrupt was handled (or else, processor will stop sending interrupts)
+    outb( 0x20, 0x20 );
+}
+
+void page_fault() {
+    panic( "page fault\n" );
+}
+
 void idt_init() {
     // clear descriptors & setup IDTR
     memset( idt_descriptors, 0, sizeof( idt_descriptors ) );
@@ -74,6 +78,9 @@ void idt_init() {
 
     // set interrupt 0 (divide by zero exception)
     idt_set( 0, idt_zero );
+
+    // set interrupt 14 (page fault)
+    idt_set( 14, page_fault );
 
     // kernel call from userland
     idt_set( 0x80, isr80h_wrapper );

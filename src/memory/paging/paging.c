@@ -70,9 +70,9 @@ int paging_map( struct paging_4gb_chunk* directory, void* virt, void* phys, int 
 }
 
 int paging_map_range( struct paging_4gb_chunk* directory, void* virt, void* phys, int count, int flags ) {
-     int res;
      for( int i = 0; i < count; i++ ) {
-         if( (res = paging_map( directory, virt, phys, flags )) < 0 ) return res;
+         int res = paging_map( directory, virt, phys, flags );
+         if( res < 0 ) return res;
          virt += PAGING_PAGE_SIZE;
          phys += PAGING_PAGE_SIZE;
      }

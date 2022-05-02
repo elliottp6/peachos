@@ -5,16 +5,12 @@
 
 int main( int argc, char** argv ) {
     // print arguments
-    printf( "%i %s\n", argc, argv[0] );
+    printf( "args %i %s\n", argc, argv[0] );
 
     // test malloc
-    char* p = (char*)malloc( 20 );
-    strcpy( p, "Welcome to blankc!" );
-    printf( "read before free: %s\n", p );
+    char *p = (char*)malloc( 20 );
     free( p );
-    printf( "read after free: %s\n", p ); // <-- does not trigger crash, but cannot read memory (zeros)
-    //p[0] = 'A'; // <-- triggers a crash
-    //printf( "write after free: %s\n", p );
+    printf( "print-after-free does not pagefault (bug in task.c:copy_string_from_task): %s\n", p );
 
     // test parse command
     char str[] = "hello world";
