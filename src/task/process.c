@@ -58,6 +58,56 @@ static struct process_allocation* process_get_allocation_by_addr( struct process
     return NULL;
 }
 
+// TODO: later on, we could optimize this by just doing a kfree instead of a process_free, and not worrying about unmapping the page tables
+int process_terminate_allocations( struct process* process ) {
+    for( int i = 0; i < PEACHOS_MAX_PROGRAM_ALLOCATIONS; i++ )
+        process_free( process, process->allocations[i].ptr );
+    return 0;
+}
+
+int process_free_binary_data( struct process* process ) { kfree( process->ptr ); return 0; }
+int process_free_elf_data( struct process* process ) { elf_close( process->elf_file ); return 0; }
+
+int process_free_program_data( struct process* process ) {
+    switch( process->filetype ) {
+        case PROCESS_FILETYPE_BINARY: return process_free_binary_data( process );
+        case PROCESS_FILETYPE_ELF: return process_free_elf_data( process );
+        default: return -EINVARG;
+    }
+}
+
+void process_focus_any() {
+    for( int i = 0; i < PEACHOS_MAX_PROCESSES; i++ )
+        if( processes[i] ) { process_focus( processes[i] ); return; }
+    panic("No processes to switch too\n");
+}
+
+// remove process from linked-list of processes
+static void process_unlink( struct process* process ) {
+    processes[process->id] = NULL;
+    if( focused_process == process ) process_focus_any();
+}
+
+// immediately kills a process
+int process_terminate( struct process* process ) {
+    // free the process' heap allocations
+    int res = process_terminate_allocations( process );
+    if( res < 0 ) return res;
+
+    // free the program data
+    if( (res = process_free_program_data( process )) < 0 ) return res;
+
+    // free stack memory
+    kfree( process->stack );
+
+    // free task memory
+    task_free( process->task );
+
+    // unlink the process from the process array
+    process_unlink( process );
+    return 0;
+}
+
 void process_get_arguments( struct process* process, int* argc, char*** argv ) {
     *argc = process->arguments.argc;
     *argv = process->arguments.argv;
