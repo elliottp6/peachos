@@ -44,7 +44,7 @@ struct process {
 
 // functions
 int process_load( const char* filename, struct process** process );
-int process_load_and_give_focus( const char* filename, struct process** process );
+int process_load_focus( const char* filename, struct process** process );
 int process_focus( struct process* process );
 struct process* process_focused();
 struct process* process_get( int process_id );

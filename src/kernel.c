@@ -147,7 +147,7 @@ void kernel_main() {
 
     // load program
     struct process* process = NULL;
-    int res = process_load_and_give_focus( "0:/shell.elf", &process );
+    int res = process_load_focus( "0:/shell.elf", &process );
     if( PEACHOS_ALL_OK != res ) panic( "failed to load shell.elf\n" ); else print( "Loaded shell.elf OK\n" );
 
     // test: push character to current process' keyboard buffer

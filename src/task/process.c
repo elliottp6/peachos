@@ -285,7 +285,7 @@ int process_load( const char* filename, struct process** process ) {
     return process_load_for_slot( filename, process, process_slot );
 }
 
-int process_load_and_give_focus( const char* filename, struct process** process ) {
+int process_load_focus( const char* filename, struct process** process ) {
     int res = process_load( filename, process );
     return 0 == res ? process_focus( *process ) : res;
 }
