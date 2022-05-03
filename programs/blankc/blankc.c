@@ -5,7 +5,9 @@
 
 int main( int argc, char** argv ) {
     // print arguments
-    printf( "args %i %s\n", argc, argv[0] );
+    printf( "%i args: ", argc );
+    for( int i = 0; i < argc; i++ ) { print( argv[i] ); if( i < argc - 1 ) print( "," ); }
+    print( "\n" );
 
     // test malloc
     char *p = (char*)malloc( 20 );
