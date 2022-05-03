@@ -6,7 +6,7 @@ struct command_argument* peachos_parse_command( const char* command, int max ) {
     char scommand[1024];
 
     // sanity check 'max'
-    if( max >= (int)sizeof( scommand ) ) return NULL;
+    if( max > (int)sizeof( scommand ) ) return NULL;
 
     // copy 'command' => 'scommand'
     strncpy( scommand, command, sizeof( scommand ) );
@@ -71,4 +71,17 @@ void peachos_terminal_readline( char* out, int max, bool output_while_typing ) {
         out[i] = key;
     }
     out[i] = 0;
+}
+
+int peachos_system_run( const char* command ) {
+    // copy command into buffer TODO: why does the lecture do this? seems unnecessary
+    char buffer[1024];
+    strncpy( buffer, command, sizeof( buffer ) );
+
+    // parse the command
+    struct command_argument* root_arg = peachos_parse_command( buffer, sizeof( buffer ) );
+    if( !root_arg ) return -1;
+    
+    // run it
+    return peachos_system( root_arg );
 }

@@ -9,8 +9,8 @@ int main( int argc, char** argv ) {
         print( "> " );
         char buf[1024];
         peachos_terminal_readline( buf, sizeof( buf ), true );
-        printf( "\n'%s'\n", buf );
-        peachos_process_load_start( buf );
+        print( "\n" );
+        if( peachos_system_run( buf ) < 0 ) printf( "'%s' not found\n", buf );
     }
     return 0;
 }

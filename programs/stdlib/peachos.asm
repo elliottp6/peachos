@@ -9,6 +9,7 @@ global peachos_free:function
 global peachos_putchar:function
 global peachos_process_load_start:function
 global peachos_process_get_arguments:function
+global peachos_system:function
 
 ; void print( const char* message );
 print:
@@ -96,6 +97,22 @@ peachos_process_load_start:
     ; body
     mov eax, 6 ; command 'process_load_start'
     push dword[ebp + 8]; push arg #1 'filename'
+    int 0x80
+    add esp, 4 ; pop args
+
+    ; destroy stack frame
+    pop ebp
+    ret
+
+; int peachos_system( struct command_argument* arguments );
+peachos_system:
+    ; create stack frame
+    push ebp
+    mov ebp, esp
+
+    ; body
+    mov eax, 7 ; command 'peachos_system'
+    push dword[ebp + 8]; push arg #1 'arguments'
     int 0x80
     add esp, 4 ; pop args
 
