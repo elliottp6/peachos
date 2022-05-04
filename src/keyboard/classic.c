@@ -75,6 +75,12 @@ void classic_keyboard_handle_interrupt() {
     // if key released: ignore it
     if( CLASSIC_KEYBOARD_KEY_RELEASED & scancode ) return;
 
+    // on capslock: toggle capslock state
+    if( CLASSIC_KEYBOARD_CAPSLOCK == scancode ) {
+        KEYBOARD_CAPS_LOCK_STATE state = keyboard_get_capslock( &classic_keyboard );
+        keyboard_set_capslock( &classic_keyboard, KEYBOARD_CAPS_LOCK_ON == state ? KEYBOARD_CAPS_LOCK_OFF : KEYBOARD_CAPS_LOCK_ON );
+    }
+    
     // convert scancode to character
     uint8_t c = classic_keyboard_scancode_to_char( scancode );
     if( 0 == c ) return; // no character
