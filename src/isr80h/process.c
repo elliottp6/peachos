@@ -69,3 +69,9 @@ void* isr80h_command8_get_program_arguments( struct interrupt_frame* frame ) {
     process_get_arguments( task->process, &args->argc, &args->argv );
     return 0;
 }
+
+void* isr80h_command9_exit( struct interrupt_frame* frame ) {
+    process_terminate( task_current()->process );
+    task_next();
+    return 0;
+}
