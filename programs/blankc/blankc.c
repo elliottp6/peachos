@@ -13,16 +13,18 @@ int main( int argc, char** argv ) {
     print( "What is your name? " );
     char buf[1024];
     peachos_terminal_readline( buf, sizeof( buf ), true );
-    printf( "\nnice to meet you, %s!\n", buf );
+    print( "\n" );
 
-    // loop forever
+    // main loop
     while( 1 ) {
-        if( 0 != peachos_getkey() ) {
-            print( "key was pressed\n" );
+        printf( "nice to meet you, %s! Press E to exit, C to crash:\n", buf );
 
-            // cause a page fault
-            char* p = NULL;
-            p[0] = 5;
+        // wait for keypress
+        int key = peachos_getkey_block();
+        switch( key ) {
+            case 'E': print( "Goodbye!\n" ); return 0;
+            case 'C': { print( "Crash time!\n" ); char* p = NULL; p[0] = 5; break; }
+            default: break;
         }
     }
     return 0;
