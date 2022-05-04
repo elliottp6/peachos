@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "memory/memory.h"
 #include "task/task.h"
+#include "task/process.h"
 #include "io/io.h"
 #include "status.h"
 
@@ -66,6 +67,14 @@ void page_fault() {
     panic( "page fault\n" );
 }
 
+void idt_handle_exception() {
+    // terminate the currently executing process
+    process_terminate( task_current()->process );
+
+    // return to the next task
+    task_next();
+}
+
 void idt_init() {
     // clear descriptors & setup IDTR
     memset( idt_descriptors, 0, sizeof( idt_descriptors ) );
@@ -77,13 +86,16 @@ void idt_init() {
         idt_set( i, interrupt_pointer_table[i] );
 
     // set interrupt 0 (divide by zero exception)
-    idt_set( 0, idt_zero );
+    //idt_set( 0, idt_zero );
 
     // set interrupt 14 (page fault)
-    idt_set( 14, page_fault );
+    //idt_set( 14, page_fault );
 
     // kernel call from userland
     idt_set( 0x80, isr80h_wrapper );
+
+    // userland exeptions should crash the process
+    for( int i = 0; i < 0x20; i++ ) idt_register_interrupt_callback( i, idt_handle_exception );
 
     // load the interrupt descriptor table
     idt_load( &idtr_descriptor );

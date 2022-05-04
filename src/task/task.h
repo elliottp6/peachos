@@ -42,14 +42,13 @@ int task_switch( struct task* task );
 int task_page();
 int task_page_task( struct task* task );
 void task_run_first_ever_task();
-
-// assembly functions
-void task_return( struct registers* regs );
-void restore_general_purpose_registers( struct registers* regs) ;
-void user_registers();
-
-// functions
+void task_next();
 void task_current_save_state( struct interrupt_frame* frame );
 int copy_string_from_task( struct task* task, void* virtual, void* physical, int max );
 void* task_get_stack_item( struct task* task, int i );
 void* task_virtual_address_to_physical( struct task* task, void* virt );
+
+// assembly functions
+void restore_general_purpose_registers( struct registers* regs) ;
+void task_return( struct registers* regs );
+void user_registers();
