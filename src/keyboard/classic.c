@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// capslock scancode
+#define CLASSIC_KEYBOARD_CAPSLOCK 0x3A
+
 // forward delcarations
 int classic_keyboard_init();
 void classic_keyboard_handle_interrupt();
@@ -38,6 +41,9 @@ int classic_keyboard_init() {
     // register the interrupt callback for keypresses
     idt_register_interrupt_callback( ISR_KEYBOARD_INTERRUPT, classic_keyboard_handle_interrupt );
     
+    // initial state of keyboard should be capslock disabled
+    keyboard_set_capslock( &classic_keyboard, KEYBOARD_CAPS_LOCK_OFF );
+
     // enable the 1st PS/2 port
     outb( PS2_PORT, PS2_COMMAND_ENABLE_FIRST_PORT );
     return 0;
@@ -49,7 +55,11 @@ uint8_t classic_keyboard_scancode_to_char( uint8_t scancode ) {
     if( scancode >= size_of_keyboard_set_one ) return 0;
 
     // decode the character
-    return keyboard_scan_set_one[scancode];
+    char c = keyboard_scan_set_one[scancode];
+
+    // make lowercase if capslock is off
+    if( KEYBOARD_CAPS_LOCK_OFF == keyboard_get_capslock( &classic_keyboard ) && c >= 'A' && c <= 'Z' ) c+=32;
+    return c;
 }
 
 void classic_keyboard_handle_interrupt() {

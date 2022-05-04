@@ -44,6 +44,10 @@ void keyboard_backspace( struct process* process ) {
     process->keyboard.buffer[real_index] = 0;
 }
 
+// capslock getter/setter
+KEYBOARD_CAPS_LOCK_STATE keyboard_get_capslock( struct keyboard* keyboard ) { return keyboard->capslock_state; }
+void keyboard_set_capslock( struct keyboard* keyboard, KEYBOARD_CAPS_LOCK_STATE state ) { keyboard->capslock_state = state; }
+
 // pushing a key inputs to just the process which has the FOCUS (process_current)
 void keyboard_push( char c ) {
     // don't allow zero to be pushed (or else buffer would be corrupted)

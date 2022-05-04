@@ -22,8 +22,8 @@ int main( int argc, char** argv ) {
         // wait for keypress
         int key = peachos_getkey_block();
         switch( key ) {
-            case 'E': print( "Goodbye!\n" ); return 0;
-            case 'C': { print( "Crash time!\n" ); char* p = NULL; p[0] = 5; break; }
+            case 'E': case 'e': print( "Goodbye!\n" ); return 0;
+            case 'C': case 'c': { print( "Crash time!\n" ); char* p = NULL; p[0] = 5; break; }
             default: break;
         }
     }
