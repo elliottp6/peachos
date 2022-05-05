@@ -59,7 +59,7 @@ restore_general_purpose_registers:
     mov ebx, [ebx+12] ; do ebx last, since that held our pointer to the argument
 
     ; C function exit
-    pop ebp
+    add esp, 4
     ret
 
 ; change all the segment registers to the USER_DATA_SEGMENT
