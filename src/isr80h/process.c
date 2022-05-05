@@ -45,7 +45,7 @@ void* isr80h_command7_invoke_system_command( struct interrupt_frame* frame ) {
 
     // load process & give it focus
     struct process* process = NULL;
-    int res = process_load_focus( path, &process );
+    int res = process_load( path, &process );
     if( res < 0 ) return ERROR( res );
 
     // inject our command arguments
