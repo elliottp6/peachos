@@ -13,7 +13,7 @@ _start:
 next_key:
     ; getkey, and goto 'done' if it's 'enter'
     call getkey
-    cmp eax, 10 ; TODO: this isn't working, so we want need a different value
+    cmp eax, 13
     je done
 
     ; write character

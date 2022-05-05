@@ -43,7 +43,6 @@ task_return:
 
 ; this function takes a registers struct, and puts values into real registers (thus, overwriting them)
 ; void restore_general_purpose_registers( struct registers* regs );
-; TODO: no reason to push/pop the caller's base pointer since we don't use the stack inside here, right?
 restore_general_purpose_registers:
     ; C function entry
     push ebp ; save caller's base pointer

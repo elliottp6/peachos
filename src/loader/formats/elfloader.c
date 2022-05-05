@@ -125,12 +125,8 @@ int elf_process_loaded( struct elf_file* elf_file ) {
     if( res < 0 ) return res;
 
     // process the program headers
-    if( (res = elf_process_program_headers( elf_file )) < 0 ) goto out;
-
-    // TODO: continue
-
-out:
-    return res;
+    if( (res = elf_process_program_headers( elf_file )) < 0 ) return res;
+    return 0;
 }
 
 // loads an elf file

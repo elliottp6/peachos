@@ -13,7 +13,8 @@ struct disk_stream* diskstreamer_new( int disk_id ) {
     }
 
     // allocate disk streamer
-    struct disk_stream* streamer = kzalloc( sizeof( struct disk_stream ) ); // TODO: if( NULL == streamer ) return NULL;
+    struct disk_stream* streamer = kzalloc( sizeof( struct disk_stream ) );
+    if( NULL == streamer ) return NULL; // TODO: added this check in
     streamer->pos = 0;
     streamer->disk = disk;
     return streamer;

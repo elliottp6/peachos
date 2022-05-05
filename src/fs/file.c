@@ -25,10 +25,7 @@ void fs_insert_filesystem( struct filesystem* filesystem ) {
     struct filesystem** fs = fs_get_free_filesystem();
 
     // panic (implement me later as a function) if there is not a free filesystem
-    if( !fs ) {
-        print( "Problem inserting filesystem\n" );
-        while( 1 ) {}
-    }
+    if( !fs ) panic( "no free filesystem slot\n" );
 
     // insert filesystem into the filesystem array
     *fs = filesystem;
@@ -121,13 +118,8 @@ int fopen( const char* filename, const char* mode_string ) {
     res = desc->index;
 
 out:
-    // TODO: if( root_path ) pathparser_free( root_path ); // <-- this seems VERY important, but in the lecture he does not clear the memory
-    if( res < 0 ) { 
-        // TODO: clear memory... isn't there more that needs to be done here?
-        pathparser_free( path );
-        return 0; // fopen shouldn't return negative values
-    }
-    return res;
+    if( path ) pathparser_free( path ); // TODO: lecture does not do this
+    return res >= 0 ? res : 0; // should not return negative values
 }
 
 int fstat( int fd, struct file_stat* stat ) {

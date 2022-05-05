@@ -150,8 +150,8 @@ int task_page_task( struct task* task ) {
 }
 
 void task_run_first_ever_task() {
-    // TODO: shouldn't this check for task_head?
-    if( !current_task ) panic( "task_run_first_ever_task(): No current task exists!\n" );
+    // check to ensure we have at least one task
+    if( !task_head ) panic( "task_run_first_ever_task(): No tasks exist!\n" );
     
     // switch the page directory & set current_task
     task_switch( task_head );
