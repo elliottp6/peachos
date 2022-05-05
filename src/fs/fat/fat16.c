@@ -285,12 +285,13 @@ void fat16_get_full_relative_filename( struct fat_directory_item* item, char* ou
     memset( out, 0, max_len );
     
     // write filename to out (replacing spaces with null terminator)
-    string_replace_terminator_with_null_terminator( &out, (const char*)item->filename, 0x20 );
+    // TODO: there's still a bug here, b/c we NEVER check to ensure max_len is enough
+    string_append( &out, (const char*)item->filename, 0x20, sizeof( item->filename ) );
     
     // append extension (if extension is not empty)
     if( item->ext[0] && item->ext[0] != 0x20 ) {
         *out++ = '.';
-        string_replace_terminator_with_null_terminator( &out, (const char*)item->ext, 0x20 );
+        string_append( &out, (const char*)item->ext, 0x20, sizeof( item->ext ) );
     }
 }
 
@@ -514,20 +515,21 @@ int fat16_stat( struct disk* disk, void* private, struct file_stat* stat ) {
 
 // takes a path and returns a file descriptor TODO: how does callee know if there's an error?
 void* fat16_open( struct disk* disk, struct path_part* path, FILE_MODE mode ) {
-    // read-only filesystem
-    if( FILE_MODE_READ != mode ) return ERROR(-ERDONLY);
+    // check for read-only filesystem
+    if( FILE_MODE_READ != mode ) return ERROR( -ERDONLY );
     
-    // allocate a new file descriptor
+    // allocate descriptor
     struct fat_file_descriptor* descriptor = kzalloc( sizeof( struct fat_file_descriptor ) );
-    if( !descriptor ) return ERROR(-ENOMEM);
+    if( !descriptor ) return ERROR( -ENOMEM );
 
-    // set descriptor position & item
-    descriptor->pos = 0;
-    descriptor->item = fat16_get_directory_entry( disk, path );
-    if( !descriptor->item ) {
+    // load descriptor item
+    if( !(descriptor->item = fat16_get_directory_entry( disk, path )) ) {
         kfree( descriptor );
         return ERROR( -EIO );
     }
+
+    // done
+    descriptor->pos = 0;
     return descriptor;
 }
 

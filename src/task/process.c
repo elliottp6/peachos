@@ -177,7 +177,7 @@ static int process_load_binary( const char* filename, struct process* process ) 
     // get filesize
     struct file_stat stat;
     int res = fstat( fd, &stat );
-    if( res < 0 ) goto out;
+    if( res < 0 ) { fclose( fd ); return res; }
 
     // allocate program data
     void* program_data_ptr = kzalloc( stat.filesize );
@@ -192,8 +192,7 @@ static int process_load_binary( const char* filename, struct process* process ) 
     process->size = stat.filesize;
 
 out:
-    // TODO: in the lecture version, the 'program_data_ptr' is not deallocated
-    if( res < 0 ) { if( program_data_ptr ) kfree( program_data_ptr ); } // if error: deallocate program_data
+    if( res < 0 ) { if( program_data_ptr ) kfree( program_data_ptr ); }
     fclose( fd ); // close file
     return res;
 }

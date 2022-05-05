@@ -11,4 +11,4 @@ int strnlen_terminator( const char* s, int max, char terminator );
 bool is_digit( char c );
 int to_numeric_digit( char c );
 char tolower( char c );
-void string_replace_terminator_with_null_terminator( char** out, const char* in, char terminator );
+void string_append( char** out, const char* in, char terminator, int max_length );

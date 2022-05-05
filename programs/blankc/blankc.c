@@ -4,11 +4,17 @@
 #include "string.h"
 
 int main( int argc, char** argv ) {
-    // print arguments
-    printf( "%i args: ", argc );
-    for( int i = 0; i < argc; i++ ) { print( argv[i] ); if( i < argc - 1 ) print( "," ); }
-    print( "\n" );
+    while( 1 ) {
+        // print arguments
+        printf( "%i args: ", argc );
+        for( int i = 0; i < argc; i++ ) { print( argv[i] ); if( i < argc - 1 ) print( "," ); }
+        print( "\n" );
 
+        // long loop
+        for( int i = 0; i < 500000000; i++ );
+    }
+
+    /*
     // test terminal readline
     print( "What is your name? " );
     char buf[1024];
@@ -27,5 +33,6 @@ int main( int argc, char** argv ) {
             default: break;
         }
     }
+    */
     return 0;
 }

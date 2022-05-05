@@ -56,7 +56,7 @@ char* strncpy( char* dest, const char* src, int count ) {
 bool is_digit( char c ) { return c >= 48 && c <= 57; }
 int to_numeric_digit( char c ) { return c - 48; }
 
-void string_replace_terminator_with_null_terminator( char** out, const char* in, char terminator ) {
-    while( *in && *in != terminator ) { **out = *in; *out+=1; in+=1; }
-    if( *in == terminator ) **out = 0;
+void string_append( char** out, const char* in, char terminator, int max_length ) {
+    for( int i = 0; i < max_length && in[0] && terminator != in[i]; **out = in[i], *out+=1, i++ );
+    **out = 0;
 }
