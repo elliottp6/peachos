@@ -147,8 +147,25 @@ void kernel_main() {
 
     // load program
     struct process* process = NULL;
-    int res = process_load_focus( "0:/shell.elf", &process );
-    if( PEACHOS_ALL_OK != res ) panic( "failed to load shell.elf\n" ); else print( "Loaded shell.elf OK\n" );
+    int res = process_load_focus( "0:/blankc.elf", &process );
+    if( PEACHOS_ALL_OK != res ) panic( "failed to load blankc.elf\n" ); else print( "Loaded blankc.elf OK\n" );
+
+    // inject args
+    struct command_argument arg;
+    arg.next = NULL;
+    strcpy( arg.argument, "there" );
+    process_inject_arguments( process, &arg );
+
+    // load program2
+    struct process* process2 = NULL;
+    res = process_load_focus( "0:/blankc.elf", &process2 );
+    if( PEACHOS_ALL_OK != res ) panic( "failed to load blankc.elf\n" ); else print( "Loaded blankc.elf OK\n" );
+
+    // inject args
+    struct command_argument arg2;
+    arg2.next = NULL;
+    strcpy( arg2.argument, "hi " );
+    process_inject_arguments( process2, &arg2 );
 
     // test: push character to current process' keyboard buffer
     // (note: we cannot pop, because there's no task to pop yet)
@@ -158,8 +175,8 @@ void kernel_main() {
     task_run_first_ever_task();
 
     // enable interrupts
-    enable_interrupts();
-    print( "enabled interrupts\n" );
+    //enable_interrupts();
+    //print( "enabled interrupts\n" );
 
     // test opening a file
     /*

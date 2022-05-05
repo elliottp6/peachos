@@ -75,6 +75,14 @@ void idt_handle_exception() {
     task_next();
 }
 
+void idt_clock() {
+    // acknowledge interrupts
+    outb( 0x20, 0x20 );
+
+    // continue by running next task
+    task_next();
+}
+
 void idt_init() {
     // clear descriptors & setup IDTR
     memset( idt_descriptors, 0, sizeof( idt_descriptors ) );
@@ -96,6 +104,9 @@ void idt_init() {
 
     // userland exeptions should crash the process
     for( int i = 0; i < 0x20; i++ ) idt_register_interrupt_callback( i, idt_handle_exception );
+
+    // every clock tick, change the current task
+    idt_register_interrupt_callback( 0x20, idt_clock );
 
     // load the interrupt descriptor table
     idt_load( &idtr_descriptor );
