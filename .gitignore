@@ -7,3 +7,6 @@
 # elf files
 *.elf
 
+# visual studio code local settings
+.vscode
+
