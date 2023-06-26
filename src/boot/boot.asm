@@ -1,18 +1,18 @@
 ; https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23972412
-ORG 0x7C00 ; code origin
-BITS 16 ; 16-bit code
 
-; defines
+; constants
+ORG 0x7C00 ; code origin (since this is where bios will load 1st sector (512 bytes) into memory)
+BITS 16 ; 16-bit real mode (segmented memory model)
 CODE_SEG equ gdt_code - gdt_start ; offset to gdt_code (should be 0x08)
 DATA_SEG equ gdt_data - gdt_start ; offset to gdt_data (should be 0x10)
 
-; BPB (BIOS parameter block)
+; --BPB (BIOS parameter block) --
+; This describes the physical layout of a data storage volume.
+; Filesystems which use a BPB include FAT12/16/32, HPFS, NTFS.
 _start:
-    jmp short start ; relative jump to 'start'
+    jmp short start ; relative jump to 'start', which skips over the BPB, and starts executing code
     nop
-
-; FAT16 header (https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23984420, https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system)
-OEMIdentifier       db 'PEACHOS '; OEM Identifier for PEACHOS (FAT16 header)
+OEMIdentifier       db 'PEACHOS '; OEM Identifier for PEACHOS (FAT16 header) https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23984420, https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system
 BytesPerSector      dw 0x200 ; 512 bytes per sector (generally ignored by most kernels)
 SectorsPerCluster   db 0x80 ; 128 sectors per cluster (i.e. 65K per cluster)
 ReservedSectors     dw 200 ; plenty for our entire kernel (we won't be loading the kernel from file, but from reserved sectors)
@@ -25,22 +25,23 @@ SectorsPerTrack     dw 0x20
 NumberOfHeads       dw 0x40
 HiddenSectors       dd 0x00
 SectorsBig          dd 0x773594
-
-; Extended BPB (Dos 4.0)
-DriveNumber         db 0x80
+DriveNumber         db 0x80 ; Extended BPB (Dos 4.0)
 WinNTBit            db 0x00
 Signature           db 0x29
 VolumeID            dd 0xD105
 VolumeIDString      db 'PEACHOS BOO' ; must be 11 bytes
 SystemIDString      db 'FAT16   ' ; must be 8 bytes
 
-; jump to main16, specifying the code segment as 0
+; -- execution continues from here --
+; jump to main16 (in real mode, we use segment:offset for addresses (where address = segment * 16 + offset)
+; (not sure why we do this rather than jumping directly to main16 from _start label, this seems like an extra unneeded jump)
 start:
     jmp 0:main16
 
+; -- execution continues from here --
 ; main16 (real mode)
 main16:
-    ; set real mode segment registers
+    ; clear real mode segment registers
     cli ; disable interrupts
     mov ax, 0
     mov ds, ax ; data segment = 0
@@ -49,7 +50,7 @@ main16:
     mov sp, 0x7C00 ; stack pointer = 0x7C00 (stack grows down)
     sti ; enable interrupts
 load_protected:
-    ; enter protected mode
+    ; enter protected mode (32-bit)
     cli ; disable interrupts
     lgdt[gdt_descriptor] ; load GDT
     mov eax, cr0 ; turn on 1st bit of cr0
