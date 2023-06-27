@@ -34,7 +34,9 @@ SystemIDString      db 'FAT16   ' ; must be 8 bytes
 
 ; -- execution continues from here --
 ; jump to main16 (in real mode, we use segment:offset for addresses (where address = segment * 16 + offset)
-; (not sure why we do this rather than jumping directly to main16 from _start label, this seems like an extra unneeded jump)
+; why jump here? answer on https://wiki.osdev.org/Entering_Long_Mode_Directly
+; we do this long jump because some BIOS will load us in Some BIOS' may load us at 0x0000:0x7C00 while other may load us at 0x07C0:0x0000
+; Do a far jump to fix this issue, and reload CS to 0x0000
 start:
     jmp 0:main16
 
